@@ -21,7 +21,7 @@ public abstract class AbstractPlayer {
 
   protected List<AbstractCard> handKarten;
 
-  protected Stapel lastPlay;
+  protected Stapel lastAblage;
 
   protected Map<Color, Stack<AbstractCard>> ablagestapels;
 
@@ -42,7 +42,7 @@ public abstract class AbstractPlayer {
     this.expeditionen = enemyExpeditions;
     this.enemyEx = enemyExpeditions;
 
-    this.lastPlay = null;
+    this.lastAblage = null;
   }
 
 
@@ -62,19 +62,19 @@ public abstract class AbstractPlayer {
     LinkedList<Stapel> result = new LinkedList<Stapel>();
 
     for (Color c : Color.orderedColors) {
-      if (this.ablagestapels.size() > 0) {
+      if (!this.ablagestapels.get(c).isEmpty()) {
         result.add(Stapel.toMiddle(c));
       }
 
     }
 
-    if (this.lastPlay != null) {
-      result.remove(this.lastPlay);
+    if (this.lastAblage != null) {
+      result.remove(this.lastAblage);
     }
 
 
     result.add(Stapel.NACHZIEHSTAPEL);
-    this.lastPlay = null;
+    this.lastAblage = null;
     return result;
   }
 
@@ -162,7 +162,7 @@ public abstract class AbstractPlayer {
 
   public void setLastPlay(Stapel abs) {
 
-    this.lastPlay = abs;
+    this.lastAblage = abs;
   }
 
   public String getName() {
@@ -175,6 +175,14 @@ public abstract class AbstractPlayer {
 
   public void setIndex(int i) {
     this.index = i;
+  }
+
+  public int getIndex() {
+    return this.index;
+  }
+
+  public Stapel getLastAblage() {
+    return this.lastAblage;
   }
 
 

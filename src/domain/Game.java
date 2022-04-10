@@ -319,9 +319,6 @@ public class Game {
 
 
     player.setLastPlay(play.getStapel());
-
-    // System.out.println(player.getName() + " | " + play.getCard() + " on " + play.getStapel());
-
   }
 
   private boolean checkExpeditionPlay(PlayOption play, AbstractPlayer player) {
@@ -361,22 +358,31 @@ public class Game {
 
   }
 
-  private void addCardtoPlayer(Stapel stapel, AbstractPlayer abstractPLayer) {
-    System.out.println(abstractPLayer.getName() + " zieht von Stapel" + stapel);
-
+  private void addCardtoPlayer(Stapel stapel, AbstractPlayer abstractPlayer) {
 
     Optional<AbstractCard> abs;
     if (stapel.isMiddle()) {
+
+      if (abstractPlayer.getLastAblage() != null) {
+        if (abstractPlayer.getLastAblage().equals(stapel)) {
+          throw new GameException.SameCardException();
+        }
+      }
+
       abs = this.returnCard(stapel);
-      System.out.println("stapel ist middle");
+
     } else {
       abs = this.returnCardFromNachziehStapel();
     }
 
     if (abs.isPresent()) {
-      abstractPLayer.getHandKarten().add(abs.get());
+
+      AbstractCard card = abs.get();
+      abstractPlayer.getHandKarten().add(card);
+
+
     } else {
-      System.out.println("karte konnte nicht hinzugefuegt werden");
+      throw new GameException("karte konnte nicht hinzugefuegt werden");
     }
 
     if (nachZiehStapel.isEmpty()) {
@@ -384,6 +390,8 @@ public class Game {
       calculateScores();
     }
 
+    this.turn = 1 ^ this.turn;
+    abstractPlayer.setLastPlay(null);
 
   }
 
@@ -415,8 +423,6 @@ public class Game {
   public List<AbstractPlayer> getPlayers() {
     return this.players;
   }
-
-
 
   public Optional<AbstractCard> peekNachziehStapel() {
 

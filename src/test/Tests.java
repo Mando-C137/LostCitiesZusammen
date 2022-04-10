@@ -11,6 +11,8 @@ public class Tests {
     // game.getPlayers.get(0).setStrategy(....)
     while (!game.getGameEnd()) {
 
+
+      System.out.println(game.getPlayerWithTurn().getHandKarten());
       game.externalRound(game.getPlayerWithTurn());
 
       System.out.println(game);

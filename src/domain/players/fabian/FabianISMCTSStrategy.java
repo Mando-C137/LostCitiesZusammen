@@ -6,19 +6,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import javax.smartcardio.Card;
 import domain.PlayOption;
 import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
 import domain.players.AbstractPlayer;
+import domain.strategies.PlayStrategy;
+import domain.strategies.Strategies;
 
 /**
  * AI for Lost Cities. "Foreign" domain objects will be transformed into known objects.
  *
  * @author Fabian Rajwa
  */
-public class FabianPlayer extends AbstractPlayer {
+public class FabianISMCTSStrategy implements PlayStrategy {
 
   /**
    * Time for MCTS iterations.
@@ -61,7 +62,7 @@ public class FabianPlayer extends AbstractPlayer {
    * Plays the first part (playing a card) of a move.
    */
   @Override
-  public PlayOption play(int remainingCards) {
+  public PlayOption choosePlay(int remainingCards) {
     this.move = this.createTree(this.createGameState());
 
     // transform PlayMove into PlayOption
@@ -271,5 +272,11 @@ public class FabianPlayer extends AbstractPlayer {
     }
 
     return pile;
+  }
+
+  @Override
+  public String getName() {
+
+    return Strategies.FABIAN_ISMCTS.toString();
   }
 }

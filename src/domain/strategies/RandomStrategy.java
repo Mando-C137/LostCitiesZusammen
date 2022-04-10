@@ -31,6 +31,7 @@ public class RandomStrategy implements PlayStrategy {
 
     List<Stapel> ls = this.player.getDrawSet();
 
+
     int randomIndex = (int) (Math.random() * ls.size());
 
 
