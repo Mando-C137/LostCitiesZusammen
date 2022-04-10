@@ -21,6 +21,7 @@ import domain.cards.NoCard;
 import domain.cards.NumberCard;
 import domain.cards.Stapel;
 import domain.cards.WettCard;
+import domain.exceptions.GameException;
 import domain.players.AbstractPlayer;
 import domain.players.RandomPlayer;
 import domain.players.fabian.FabianPlayer;
@@ -81,7 +82,8 @@ public class Game {
 
 
     AbstractPlayer abs = new FabianPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
-        fabiansExpeditions, Collections.unmodifiableMap(randomsExpeditions)(); // TODO: Parameter Ã¤ndern
+        fabiansExpeditions, Collections.unmodifiableMap(randomsExpeditions)); // TODO: Parameter
+                                                                              // Ã¤ndern
 
     this.players = new ArrayList<AbstractPlayer>();
     this.players.add(abs);
@@ -95,8 +97,8 @@ public class Game {
 
 
     // TODO hier mÃ¼ssten dann der KI Spieler hinzugefÃ¼egt werden.
-    
-    this.turn = 0; 
+
+    this.turn = 0;
   }
 
 
@@ -168,7 +170,7 @@ public class Game {
 
     for (AbstractPlayer abs : this.players) {
       res.append(abs.getName() + "\t");
-      res.append(abs.expenditionenString() + "\n");
+      res.append(abs.expeditionenString() + "\n");
     }
 
     res.append("Middle\t\t");
@@ -290,20 +292,15 @@ public class Game {
 
 
   private void makePlay(PlayOption play, AbstractPlayer player) {
-    System.out.println(
-        player.getName() + " will spielen: " + play.getCard() + " auf " + play.getStapel());
 
     if (!play.getCard().getColor().equals(play.getStapel().getColor())) {
-      System.out.println("Fail");
-      return;
+      throw new GameException.IllegalPlayException(play.getCard(), play.getStapel());
     }
-
 
     AbstractCard cardToPlay = play.getCard();
 
     if (!player.getHandKarten().contains(cardToPlay)) {
-      System.out.println("Cannot play a card you do not own llolol");
-      return;
+      throw new GameException.DoNotOwnException(player, cardToPlay);
     }
 
     if (Arrays.asList(Stapel.orderedExpeditions).contains(play.getStapel())) {
@@ -311,16 +308,18 @@ public class Game {
         player.getHandKarten().remove(cardToPlay);
         player.getExpeditionen().get(cardToPlay.getColor()).push(cardToPlay);
       } else {
-        System.out.println(
-            "Karte " + cardToPlay + "darf nicht auf " + play.getStapel() + "abgelegt werden.");
-        return;
+        throw new GameException.IllegalPlayException(cardToPlay, play.getStapel());
       }
     } else {
       player.getHandKarten().remove(cardToPlay);
       this.ablageStaepels.get(cardToPlay.getColor()).push(cardToPlay);
     }
 
+
+
     player.setLastPlay(play.getStapel());
+
+    // System.out.println(player.getName() + " | " + play.getCard() + " on " + play.getStapel());
 
   }
 
