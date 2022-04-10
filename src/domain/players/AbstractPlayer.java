@@ -1,6 +1,5 @@
 package domain.players;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,32 +16,32 @@ import domain.cards.Stapel;
  */
 public abstract class AbstractPlayer {
 
-  /**
-   * Der Name des Spielers
-   */
-  final private String name;
 
-  private Map<Color, Stack<AbstractCard>> expeditionen;
+  protected Map<Color, Stack<AbstractCard>> expeditionen;
 
-  private LinkedList<AbstractCard> handKarten;
+  protected List<AbstractCard> handKarten;
 
   protected Stapel lastPlay;
 
-  protected HashMap<Color, Stack<AbstractCard>> ablagestapels;
+  protected Map<Color, Stack<AbstractCard>> ablagestapels;
 
   protected Map<Color, Stack<AbstractCard>> enemyEx;
 
-  public AbstractPlayer(LinkedList<AbstractCard> handKarten,
-      HashMap<Color, Stack<AbstractCard>> ablageStaepels,
-      HashMap<Color, Stack<AbstractCard>> ownExpeditions,
-      HashMap<Color, Stack<AbstractCard>> enemyExpeditions, String name) {
 
+  /**
+   * zeigt an, welcher Index man in dem Spiel ist
+   */
+  private int index;
 
+  public AbstractPlayer(List<AbstractCard> handKarten,
+      Map<Color, Stack<AbstractCard>> ablageStaepels,
+      Map<Color, Stack<AbstractCard>> ownExpeditions,
+      Map<Color, Stack<AbstractCard>> enemyExpeditions) {
     this.handKarten = handKarten;
     this.ablagestapels = ablageStaepels;
     this.expeditionen = enemyExpeditions;
     this.enemyEx = enemyExpeditions;
-    this.name = name;
+
     this.lastPlay = null;
   }
 
@@ -141,15 +140,6 @@ public abstract class AbstractPlayer {
 
 
   /**
-   * Getter fuer den Namen
-   * 
-   * @return
-   */
-  public String getName() {
-    return this.name;
-  }
-
-  /**
    * String representation der Expeditionen des Spielers. Eine Zeile, in der in festgelegter
    * Reihenfolge der Farben immer die oberste Karte steht.
    * 
@@ -173,6 +163,18 @@ public abstract class AbstractPlayer {
   public void setLastPlay(Stapel abs) {
 
     this.lastPlay = abs;
+  }
+
+  public String getName() {
+    if (this.isAI()) {
+      return ((AiPlayer) this).getStrategyName();
+    } else {
+      return "sollte nicht sein";
+    }
+  }
+
+  public void setIndex(int i) {
+    this.index = i;
   }
 
 

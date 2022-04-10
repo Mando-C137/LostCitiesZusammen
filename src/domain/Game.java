@@ -23,8 +23,8 @@ import domain.cards.Stapel;
 import domain.cards.WettCard;
 import domain.exceptions.GameException;
 import domain.players.AbstractPlayer;
-import domain.players.RandomPlayer;
-import domain.players.fabian.FabianPlayer;
+import domain.players.AiPlayer;
+import domain.strategies.RandomStrategy;
 
 /**
  * Die Gameinstanz, von der man das Spiel steuert und Referenzen auf alle nÃ¶tigen Objekte hat.
@@ -40,12 +40,12 @@ public class Game {
   /**
    * Eine Map, die jede Farbe einem Stack aus Karten zuordnet.
    */
-  private HashMap<Color, Stack<AbstractCard>> ablageStaepels;
+  private Map<Color, Stack<AbstractCard>> ablageStaepels;
 
   /**
    * Die 2 Spieler, die das Spiel spielen.
    */
-  private ArrayList<AbstractPlayer> players;
+  private List<AbstractPlayer> players;
 
   /**
    * gameEnd zeigt, ob das Spiel beendet ist.
@@ -80,30 +80,31 @@ public class Game {
     Map<Color, Stack<AbstractCard>> fabiansExpeditions = this.generateExpeditions();
     Map<Color, Stack<AbstractCard>> randomsExpeditions = this.generateExpeditions();
 
-
-    AbstractPlayer abs = new FabianPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
-        fabiansExpeditions, Collections.unmodifiableMap(randomsExpeditions)); // TODO: Parameter
-                                                                              // Ã¤ndern
-
     this.players = new ArrayList<AbstractPlayer>();
+
+    AiPlayer abs = new AiPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
+        fabiansExpeditions, Collections.unmodifiableMap(randomsExpeditions));
+    abs.setStrategy(new RandomStrategy(abs));
+
+    AiPlayer other = new AiPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
+        randomsExpeditions, Collections.unmodifiableMap(fabiansExpeditions));
+    other.setStrategy(new RandomStrategy(other));
+
     this.players.add(abs);
-    this.players.add(new RandomPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
-        randomsExpeditions, Collections.unmodifiableMap(fabiansExpeditions))); // TODO: Parameter
-                                                                               // Ã¤ndern
+    this.players.add(other);
+    abs.setIndex(0);
+    other.setIndex(1);
+
 
     for (AbstractPlayer player : players) {
       IntStream.range(0, 8).forEach(num -> this.addCardtoPlayer(Stapel.NACHZIEHSTAPEL, player));
     }
-
-
-    // TODO hier mÃ¼ssten dann der KI Spieler hinzugefÃ¼egt werden.
 
     this.turn = 0;
   }
 
 
   private Map<Color, Stack<AbstractCard>> generateExpeditions() {
-
 
     Map<Color, Stack<AbstractCard>> result = new HashMap<Color, Stack<AbstractCard>>();
 
@@ -133,7 +134,7 @@ public class Game {
 
     }
 
-    // die Karten zufÃ¤llig auf den Stapel geben
+    // die Karten zufaelllig auf den Stapel geben
     Random rand = new Random();
     while (!allCards.isEmpty()) {
       AbstractCard remove = allCards.remove(rand.nextInt(allCards.size()));
@@ -160,7 +161,7 @@ public class Game {
 
   @Override
   public String toString() {
-    // TODO Ausgabe eines Spielzustandes
+
 
     StringBuffer res = new StringBuffer();
 
@@ -411,7 +412,7 @@ public class Game {
 
   }
 
-  public ArrayList<AbstractPlayer> getPlayers() {
+  public List<AbstractPlayer> getPlayers() {
     return this.players;
   }
 
@@ -474,5 +475,9 @@ public class Game {
 
   public int getRemainingCards() {
     return this.nachZiehStapel.size();
+  }
+
+  public AbstractPlayer getPlayerWithTurn() {
+    return this.players.get(this.turn);
   }
 }
