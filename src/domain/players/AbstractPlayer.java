@@ -171,8 +171,8 @@ public abstract class AbstractPlayer {
   }
 
   public void setLastPlay(Stapel abs) {
-    if (abs != null)
-      this.lastPlay = abs;
+
+    this.lastPlay = abs;
   }
 
 

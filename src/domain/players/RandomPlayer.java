@@ -2,6 +2,7 @@ package domain.players;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 import domain.PlayOption;
 import domain.cards.AbstractCard;
@@ -15,25 +16,38 @@ public class RandomPlayer extends AbstractPlayer {
       HashMap<Color, Stack<AbstractCard>> ownExpeditions,
       HashMap<Color, Stack<AbstractCard>> enemyExpeditions) {
     super(handKarten, ablageStaepels, ownExpeditions, enemyExpeditions, "RAND");
-    // TODO Auto-generated constructor stub
+
   }
 
   @Override
   public PlayOption play(int remainingCards) {
-    // TODO Auto-generated method stub
-    return null;
+
+    List<PlayOption> ls = this.getPlaySet();
+
+    int randomIndex = (int) (Math.random() * ls.size());
+
+    PlayOption result = ls.get(randomIndex);
+    return result;
   }
 
   @Override
   public Stapel chooseStapel() {
-    // TODO Auto-generated method stub
-    return null;
+
+    if (Math.random() > 0.5) {
+      return Stapel.NACHZIEHSTAPEL;
+    }
+
+    List<Stapel> ls = this.getDrawSet();
+
+    int randomIndex = (int) (Math.random() * ls.size());
+
+
+    return ls.get(randomIndex);
   }
 
   @Override
   public boolean isAI() {
-    // TODO Auto-generated method stub
-    return false;
+    return true;
   }
 
 }
