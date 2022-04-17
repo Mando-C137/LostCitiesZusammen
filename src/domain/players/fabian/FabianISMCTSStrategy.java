@@ -11,6 +11,8 @@ import domain.cards.Color;
 import domain.cards.Stapel;
 import domain.main.AblagePlay;
 import domain.players.AbstractPlayer;
+import domain.players.AiPlayer;
+import domain.players.fabian.domain.*;
 import domain.strategies.PlayStrategy;
 import domain.strategies.Strategies;
 
@@ -20,6 +22,8 @@ import domain.strategies.Strategies;
  * @author Fabian Rajwa
  */
 public class FabianISMCTSStrategy implements PlayStrategy {
+
+  private AiPlayer player;
 
   /**
    * Time for MCTS iterations.
@@ -34,7 +38,7 @@ public class FabianISMCTSStrategy implements PlayStrategy {
   /**
    * Needed for own domain specifications.
    */
-  private final int player = 1;
+  private final int playerNumber = 1;
 
   /**
    * Normally used to save known cards of the opponent. This won't be probably used within the
@@ -47,15 +51,8 @@ public class FabianISMCTSStrategy implements PlayStrategy {
    */
   private MoveSet move;
 
-  public FabianPlayer(LinkedList<AbstractCard> handKarten,
-      HashMap<Color, Stack<AbstractCard>> ablageStaepels,
-      HashMap<Color, Stack<AbstractCard>> ownExpeditions,
-      HashMap<Color, Stack<AbstractCard>> enemyExpeditions) {
-    super(handKarten, ablageStaepels, ownExpeditions, enemyExpeditions, "FabianAI");
-    this.opponentCards = new ArrayList<>();
-
-
-
+  public FabianISMCTSStrategy(AiPlayer aiPlayer) {
+    this.player = aiPlayer;
   }
 
   /**
@@ -63,15 +60,17 @@ public class FabianISMCTSStrategy implements PlayStrategy {
    */
   @Override
   public AblagePlay choosePlay(int remainingCards) {
-    this.move = this.createTree(this.createGameState());
+    //this.opponentCards = this.transformList(this.player.getModel());
+    this.opponentCards = new ArrayList<>();
+    this.move = this.createTree(this.createGameState(remainingCards));
 
     // transform PlayMove into AblagePlay
     PlayMove playMove = this.move.getPlayMove();
-    AbstractCard card = this.getHandKarten().get(playMove.getCard() - 1);
+    AbstractCard card = this.player.getHandKarten().get(playMove.getCard() - 1);
 
     Stapel stapel = null;
     if (playMove.getTarget() == 1) {
-      switch (playMove.getCardObject().getColorCode()) {
+      switch (playMove.getCardObject().getColor()) {
         case 0:
           stapel = Stapel.REDEXPEDITION;
           break;
@@ -89,7 +88,7 @@ public class FabianISMCTSStrategy implements PlayStrategy {
           break;
       }
     } else {
-      switch (playMove.getCardObject().getColorCode()) {
+      switch (playMove.getCardObject().getColor()) {
         case 0:
           stapel = Stapel.REDMIDDLE;
           break;
@@ -153,10 +152,10 @@ public class FabianISMCTSStrategy implements PlayStrategy {
     List<MCTSThread> threads = new ArrayList<>(AMOUNT_THREADS);
 
     for (int i = 0; i < AMOUNT_THREADS; i++) {
-      agents.add(new MCTSAgent(state, this.player, this.opponentCards));
+      agents.add(new MCTSAgent(state, this.playerNumber, this.opponentCards));
       threads.add(new MCTSThread(agents.get(i)));
     }
-    agents.add(new MCTSAgent(state, this.player, this.opponentCards));
+    agents.add(new MCTSAgent(state, this.playerNumber, this.opponentCards));
 
     long time = System.currentTimeMillis();
     for (int i = 0; i < AMOUNT_THREADS; i++) {
@@ -188,9 +187,9 @@ public class FabianISMCTSStrategy implements PlayStrategy {
   /**
    * Creates a GameState object with the needed information from the Game object.
    */
-  private GameState createGameState() {
+  private GameState createGameState(int remainingCards) {
     // Player Cards
-    List<AbstractCard> playerCardsRaw = this.getHandKarten();
+    List<AbstractCard> playerCardsRaw = this.player.getHandKarten();
     List<Card> playerCards = new ArrayList<>(8);
 
     for (AbstractCard card : playerCardsRaw) {
@@ -198,50 +197,46 @@ public class FabianISMCTSStrategy implements PlayStrategy {
     }
 
     // Expedition Fields
-    List<List<Card>> field = new ArrayList<>(10);
-    HashMap<Color, Stack<AbstractCard>> ownEpeditions = this.getExpeditionen();
-    Map<Color, Stack<AbstractCard>> enemyExpeditions = this.getEnemyExp();
-
     Color[] colors = new Color[] {Color.RED, Color.GREEN, Color.BLUE, Color.WHITE, Color.YELLOW};
+    List<List<Card>> field = new ArrayList<>(10);
+    Map<Color, Stack<AbstractCard>> ownEpeditions = this.player.getExpeditionen();
+
     for (Color color : colors) {
       field.add(this.transformStack(ownEpeditions.get(color)));
     }
     for (Color color : colors) {
-      field.add(this.transformStack(enemyExpeditions.get(color)));
+      field.add(this.transformList(this.player.getEnemyExpeditions(color)));
     }
 
     // Discard Fields
     List<List<Card>> discardedFields = new ArrayList<>(5);
+    LinkedList<Stapel> discardedStapels = this.player.getDrawSet();
     for (Color color : colors) {
-      discardedFields.add(this.transformList(this.game.getAblageStapel(color)));
+      discardedFields.add(this.transformList(this.player.getAblagestapel(color)));
     }
 
     // Return
-    return new GameState(playerCards, field, discardedFields, this.game.getRemainingCards(), 0);
+    return new GameState(playerCards, field, discardedFields, remainingCards, 0);
   }
 
   /**
    * Transforms a AbstractCard object into a Card object.
    */
   private Card transformCard(AbstractCard card) {
-    String color;
+    int color;
     if (card.getColor().equals(Color.RED)) {
-      color = "Red";
+      color = 0;
     } else if (card.getColor().equals(Color.GREEN)) {
-      color = "Green";
+      color = 1;
     } else if (card.getColor().equals(Color.BLUE)) {
-      color = "Blue";
+      color = 2;
     } else if (card.getColor().equals(Color.WHITE)) {
-      color = "White";
+      color = 3;
     } else {
-      color = "Yellow";
+      color = 4;
     }
 
-
     return new Card(color, card.getValue());
-
-
-
   }
 
   /**
@@ -250,7 +245,6 @@ public class FabianISMCTSStrategy implements PlayStrategy {
   private List<Card> transformStack(Stack<AbstractCard> stack) {
     List<Card> pile = new ArrayList<>();
 
-    // TODO: test if this is the correct order
     for (AbstractCard card : stack) {
       pile.add(this.transformCard(card));
     }
@@ -273,7 +267,6 @@ public class FabianISMCTSStrategy implements PlayStrategy {
 
   @Override
   public String getName() {
-
     return Strategies.FABIAN_ISMCTS.toString();
   }
 }
