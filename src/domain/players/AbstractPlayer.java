@@ -8,6 +8,7 @@ import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
 import domain.main.AblagePlay;
+import domain.main.WholePlay;
 
 /**
  * Ein Spieler spielt das Spiel (game). Er zieht Karten von dem Nachziehstapel und den
@@ -94,6 +95,33 @@ public abstract class AbstractPlayer {
    */
   public List<AbstractCard> getHandKarten() {
     return this.handKarten;
+  }
+
+
+  /**
+   * gibt eine Liste aller möglichen Plays zurück Ein Play besteht dann aus dem Ablegen und dem
+   * Ziehen
+   * 
+   * @return
+   */
+  public List<WholePlay> getAllActions() {
+
+    // if (this.getRemainingCards() >= 20) {
+    // return this.alternativeActionsForExpansion();
+    // }
+
+    // new Stapel[] {Stapel.NACHZIEHSTAPEL}
+    LinkedList<WholePlay> result = new LinkedList<WholePlay>();
+    this.setLastPlay(null);
+    for (AblagePlay p : this.getPlaySet()) {
+      for (Stapel s : this.getDrawSet()) {
+        if (p.getStapel() != s) {
+          result.add(new WholePlay(p, s));
+        }
+      }
+    }
+
+    return result;
   }
 
   /**

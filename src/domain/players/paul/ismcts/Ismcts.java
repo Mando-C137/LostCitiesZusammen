@@ -101,7 +101,8 @@ public class Ismcts {
     while (!toSimulate.getGameEnd()) {
 
       AiPlayer abs = toSimulate.getPlayers().get(toSimulate.getTurn());
-      WholePlay nextPlay = new WholePlay(abs.choosePlay(), abs.chooseStapel());
+      WholePlay nextPlay =
+          new WholePlay(abs.play(toSimulate.getRemainingCards()), abs.chooseStapel());
       toSimulate.unCheckedPlay(nextPlay, abs);
 
     }
@@ -147,7 +148,8 @@ public class Ismcts {
     while (!toSimulate.getGameEnd()) {
 
       AiPlayer abs = toSimulate.getPlayers().get(toSimulate.getTurn());
-      WholePlay nextPlay = new WholePlay(abs.choosePlay(), abs.chooseStapel());
+      WholePlay nextPlay =
+          new WholePlay(abs.play(toSimulate.getRemainingCards()), abs.chooseStapel());
       toSimulate.unCheckedPlay(nextPlay, abs);
 
     }

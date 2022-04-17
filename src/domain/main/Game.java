@@ -76,6 +76,54 @@ public class Game {
     initPlayers();
   }
 
+  /**
+   * Kopierkonstruktor
+   * 
+   * @param g
+   */
+  public Game(Game g) {
+    this.zuege = g.zuege;
+    this.gameEnd = g.gameEnd;
+    this.turn = g.turn;
+    this.ablageStaepels = new HashMap<Color, Stack<AbstractCard>>();
+    for (Color c : Color.values()) {
+      this.ablageStaepels.put(c, new Stack<AbstractCard>());
+      this.ablageStaepels.get(c).addAll(g.ablageStaepels.get(c));
+
+    }
+
+    Map<Color, Stack<AbstractCard>> firstMap = new HashMap<Color, Stack<AbstractCard>>();
+
+    Map<Color, Stack<AbstractCard>> secondMap = new HashMap<Color, Stack<AbstractCard>>();
+
+    for (Color col : Color.values()) {
+      firstMap.put(col, new Stack<AbstractCard>());
+      secondMap.put(col, new Stack<AbstractCard>());
+
+      firstMap.get(col).addAll(g.getPlayers().get(0).getExpeditionen().get(col));
+      secondMap.get(col).addAll(g.getPlayers().get(1).getExpeditionen().get(col));
+
+    }
+
+
+
+    this.players = new ArrayList<AiPlayer>();
+    this.players.add(new AiPlayer(new LinkedList<AbstractCard>(g.players.get(0).getHandKarten()),
+        this.ablageStaepels, firstMap, Collections.unmodifiableMap(secondMap)));
+    this.players.add(new AiPlayer(new LinkedList<AbstractCard>(g.players.get(1).getHandKarten()),
+        this.ablageStaepels, secondMap, Collections.unmodifiableMap(firstMap)));
+
+    // this.players.forEach(con -> con.setGame(this));
+
+    this.players.get(0).setModel(new LinkedList<AbstractCard>(g.players.get(0).getModel()));
+    this.players.get(1).setModel(new LinkedList<AbstractCard>(g.players.get(1).getModel()));
+
+
+    this.nachZiehStapel = new Stack<AbstractCard>();
+    this.nachZiehStapel.addAll(g.nachZiehStapel);
+
+  }
+
   private void initPlayers() {
 
     /*
@@ -604,6 +652,69 @@ public class Game {
     }
 
     return allCards;
+  }
+
+  public void replacePlayersWithSimulateStrategy() {
+    this.players.forEach(con -> con.setStrategy(new RandomStrategy(con)));
+
+  }
+
+  public Stack<AbstractCard> getNachziehstapel() {
+
+    return this.nachZiehStapel;
+  }
+
+  public int calculateWinnerIndex(int perspectiveIndex) {
+
+    int diff = this.calculateScore(this.players.get(perspectiveIndex))
+        - this.calculateScore(this.players.get(perspectiveIndex ^ 1));
+
+    if (diff > 0) {
+      return perspectiveIndex;
+    } else if (diff == 0) {
+      return -1;
+    } else {
+      return perspectiveIndex ^ 1;
+    }
+
+  }
+
+  public int calculateDiff(int index) {
+
+
+    return this.calculateScore(this.players.get(index))
+        - this.calculateScore(this.players.get(index ^ 1));
+  }
+
+  public int calculateScore(AbstractPlayer p1) {
+    int wholeSum = 0;
+    int fact = 1;
+    int singleSum = -20;
+    for (Stack<AbstractCard> st : p1.getExpeditionen().values()) {
+
+      fact = 1;
+      singleSum = -20;
+      if (st.size() == 0) {
+        continue;
+      }
+
+      for (AbstractCard c : st) {
+        if (!c.isNumber()) {
+          fact++;
+        } else {
+          singleSum += c.getValue();
+        }
+      }
+
+      singleSum *= fact;
+      if (st.size() >= 8) {
+        singleSum += 20;
+      }
+      wholeSum += singleSum;
+
+    }
+
+    return wholeSum;
   }
 
 }

@@ -24,6 +24,7 @@ public class AiPlayer extends AbstractPlayer {
   }
 
 
+
   @Override
   public Stapel chooseStapel() {
     if (strategy == null) {
@@ -86,6 +87,10 @@ public class AiPlayer extends AbstractPlayer {
   public List<AbstractCard> getEnemyExpeditions(Color col) {
 
     return this.enemyEx.get(col);
+  }
+
+  public void setModel(List<AbstractCard> list) {
+    this.enemyModel = list;
   }
 
 }
