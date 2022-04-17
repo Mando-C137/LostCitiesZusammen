@@ -2,8 +2,8 @@ package domain.strategies;
 
 
 import java.util.List;
-import domain.PlayOption;
 import domain.cards.Stapel;
+import domain.main.AblagePlay;
 import domain.players.AiPlayer;
 
 public class RandomStrategy implements PlayStrategy {
@@ -15,9 +15,9 @@ public class RandomStrategy implements PlayStrategy {
   }
 
   @Override
-  public PlayOption choosePlay(int remainingCards) {
+  public AblagePlay choosePlay(int remainingCards) {
 
-    List<PlayOption> ls = this.player.getPlaySet();
+    List<AblagePlay> ls = this.player.getPlaySet();
 
     return ls.get((int) (Math.random() * ls.size()));
   }

@@ -1,11 +1,11 @@
 package domain.strategies;
 
-import domain.PlayOption;
 import domain.cards.Stapel;
+import domain.main.AblagePlay;
 
 public interface PlayStrategy {
 
-  public PlayOption choosePlay(int remainingCards);
+  public AblagePlay choosePlay(int remainingCards);
 
   public Stapel chooseStapel();
 

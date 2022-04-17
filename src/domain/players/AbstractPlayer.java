@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import domain.PlayOption;
 import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
+import domain.main.AblagePlay;
 
 /**
  * Ein Spieler spielt das Spiel (game). Er zieht Karten von dem Nachziehstapel und den
@@ -39,7 +39,7 @@ public abstract class AbstractPlayer {
       Map<Color, Stack<AbstractCard>> enemyExpeditions) {
     this.handKarten = handKarten;
     this.ablagestapels = ablageStaepels;
-    this.expeditionen = enemyExpeditions;
+    this.expeditionen = ownExpeditions;
     this.enemyEx = enemyExpeditions;
 
     this.lastAblage = null;
@@ -51,7 +51,7 @@ public abstract class AbstractPlayer {
    * 
    * @return die Playoption, die der Spieler spielet.
    */
-  public abstract PlayOption play(int remainingCards);
+  public abstract AblagePlay play(int remainingCards);
 
   public abstract Stapel chooseStapel();
 
@@ -102,22 +102,22 @@ public abstract class AbstractPlayer {
    * 
    * @return
    */
-  public List<PlayOption> getPlaySet() {
+  public List<AblagePlay> getPlaySet() {
 
-    List<PlayOption> result = new LinkedList<PlayOption>();
+    List<AblagePlay> result = new LinkedList<AblagePlay>();
 
     this.handKarten.stream().forEach(card -> {
 
       /*
        * Man kann immer eine Karte in die Mitte legen
        */
-      result.add(new PlayOption(Stapel.toMiddle(card.getColor()), card));
+      result.add(new AblagePlay(Stapel.toMiddle(card.getColor()), card));
 
       /*
        * Falls eine Expedition noch nicht geöffnet/gestartet wurde, kann man dort eine starten
        */
       if (this.getExpeditionen().get(card.getColor()).isEmpty()) {
-        result.add(new PlayOption(Stapel.toExpedition(card.getColor()), card));
+        result.add(new AblagePlay(Stapel.toExpedition(card.getColor()), card));
 
         /*
          * Andernfalls, muss die Karte eine Wettcard sein oder man muss eine größere Nummer haben
@@ -125,7 +125,7 @@ public abstract class AbstractPlayer {
       } else {
 
         if (card.compareTo(this.expeditionen.get(card.getColor()).peek()) >= 0) {
-          result.add(new PlayOption(Stapel.toExpedition(card.getColor()), card));
+          result.add(new AblagePlay(Stapel.toExpedition(card.getColor()), card));
         }
 
       }

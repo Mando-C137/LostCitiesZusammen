@@ -3,16 +3,18 @@ package domain.players;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import domain.PlayOption;
 import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
+import domain.main.AblagePlay;
 import domain.strategies.PlayStrategy;
 
 
 public class AiPlayer extends AbstractPlayer {
 
   PlayStrategy strategy;
+
+  List<AbstractCard> enemyModel;
 
   public AiPlayer(List<AbstractCard> handKarten, Map<Color, Stack<AbstractCard>> ablageStaepels,
       Map<Color, Stack<AbstractCard>> ownExpeditions,
@@ -44,7 +46,7 @@ public class AiPlayer extends AbstractPlayer {
   }
 
   @Override
-  public PlayOption play(int remainingCards) {
+  public AblagePlay play(int remainingCards) {
     if (strategy == null) {
       throw new RuntimeException("Strategy darf nicht null sein");
     }
@@ -54,6 +56,36 @@ public class AiPlayer extends AbstractPlayer {
 
   public String getStrategyName() {
     return this.strategy.getName();
+  }
+
+
+  public void addCardToModel(AbstractCard drawedCard) {
+    this.enemyModel.add(drawedCard);
+
+  }
+
+
+  public void removeCardFromModel(AbstractCard card) {
+    this.enemyModel.remove(card);
+
+  }
+
+
+  public List<AbstractCard> getAblagestapel(Color col) {
+
+    return this.ablagestapels.get(col);
+  }
+
+
+  public List<AbstractCard> getModel() {
+
+    return this.enemyModel;
+  }
+
+
+  public List<AbstractCard> getEnemyExpeditions(Color col) {
+
+    return this.enemyEx.get(col);
   }
 
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package domain;
+package domain.main;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +32,13 @@ import domain.strategies.RandomStrategy;
  */
 public class Game {
 
+
+  /**
+   * zeigt an, wie viele Züge schon gemacht worden sind
+   */
+  private int zuege = 0;
+
+
   /**
    * Der Nachziehstapel
    */
@@ -45,7 +52,7 @@ public class Game {
   /**
    * Die 2 Spieler, die das Spiel spielen.
    */
-  private List<AbstractPlayer> players;
+  private List<AiPlayer> players;
 
   /**
    * gameEnd zeigt, ob das Spiel beendet ist.
@@ -62,7 +69,7 @@ public class Game {
    * Konstruktor: Initialisierung aller nÃ¶tigen Objekte, Generieren des Nachziehstapels und
    * Austeilen der Karten an die Spieler.
    */
-  public Game() {
+  private Game() {
     this.gameEnd = false;
     initStaepel();
     generateNachziehStapel();
@@ -80,15 +87,15 @@ public class Game {
     Map<Color, Stack<AbstractCard>> fabiansExpeditions = this.generateExpeditions();
     Map<Color, Stack<AbstractCard>> randomsExpeditions = this.generateExpeditions();
 
-    this.players = new ArrayList<AbstractPlayer>();
+    this.players = new ArrayList<AiPlayer>();
 
     AiPlayer abs = new AiPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
         fabiansExpeditions, Collections.unmodifiableMap(randomsExpeditions));
-    abs.setStrategy(new RandomStrategy(abs));
+
 
     AiPlayer other = new AiPlayer(new LinkedList<AbstractCard>(), this.ablageStaepels,
         randomsExpeditions, Collections.unmodifiableMap(fabiansExpeditions));
-    other.setStrategy(new RandomStrategy(other));
+
 
     this.players.add(abs);
     this.players.add(other);
@@ -103,7 +110,21 @@ public class Game {
     this.turn = 0;
   }
 
+  public static Game twoWithoutStrategies() {
+    Game g = new Game();
 
+    g.players.forEach(con -> con.setStrategy(new RandomStrategy(con)));
+
+
+    return g;
+  }
+
+
+  /**
+   * generiert die ExpeditionsMap, das heißt leere Expeditionen
+   * 
+   * @return
+   */
   private Map<Color, Stack<AbstractCard>> generateExpeditions() {
 
     Map<Color, Stack<AbstractCard>> result = new HashMap<Color, Stack<AbstractCard>>();
@@ -134,7 +155,7 @@ public class Game {
 
     }
 
-    // die Karten zufaelllig auf den Stapel geben
+    // die Karten zufaellig auf den Stapel geben
     Random rand = new Random();
     while (!allCards.isEmpty()) {
       AbstractCard remove = allCards.remove(rand.nextInt(allCards.size()));
@@ -153,11 +174,6 @@ public class Game {
 
   }
 
-
-  public static void main(String[] args) {
-    Game game = new Game();
-    game.gameFlow();
-  }
 
   @Override
   public String toString() {
@@ -203,7 +219,7 @@ public class Game {
   }
 
 
-  public Optional<AbstractCard> returnCard(Stapel stapel) {
+  private Optional<AbstractCard> returnCard(Stapel stapel) {
     AbstractCard returnAnswer = null;
     Color c = stapel.getColor();
 
@@ -222,7 +238,7 @@ public class Game {
    *
    * @return die oberste Karte von dem NachziehStapel
    */
-  public Optional<AbstractCard> returnCardFromNachziehStapel() {
+  private Optional<AbstractCard> returnCardFromNachziehStapel() {
 
     AbstractCard returnAnswer = null;
 
@@ -251,7 +267,7 @@ public class Game {
 
       AbstractPlayer top = players.get(index);
       System.out.println((top.getHandKarten()));
-      PlayOption nextPlay = top.play(this.nachZiehStapel.size());
+      AblagePlay nextPlay = top.play(this.nachZiehStapel.size());
       this.makePlay(nextPlay, top);
 
 
@@ -283,7 +299,7 @@ public class Game {
 
   }
 
-  public void externalPlay(PlayOption opt, AbstractPlayer abs) {
+  public void externalPlay(AblagePlay opt, AbstractPlayer abs) {
     this.makePlay(opt, abs);
   }
 
@@ -292,7 +308,7 @@ public class Game {
   }
 
 
-  private void makePlay(PlayOption play, AbstractPlayer player) {
+  private void makePlay(AblagePlay play, AbstractPlayer player) {
 
     if (!play.getCard().getColor().equals(play.getStapel().getColor())) {
       throw new GameException.IllegalPlayException(play.getCard(), play.getStapel());
@@ -321,37 +337,15 @@ public class Game {
     player.setLastPlay(play.getStapel());
   }
 
-  private boolean checkExpeditionPlay(PlayOption play, AbstractPlayer player) {
+  private boolean checkExpeditionPlay(AblagePlay play, AbstractPlayer player) {
 
-    /*
-     * Falls die Expedition leer ist, darf man spielen
-     */
     if (player.getExpeditionen().get(play.getCard().getColor()).isEmpty()) {
       return true;
-      /*
-       * Auf eine Wettkarte darf man auch immer spielen
-       */
-    } else if (!player.getExpeditionen().get(play.getCard().getColor()).peek().isNumber()) {
-      return true;
-    }
+    } else {
 
-    else {
-      /*
-       * Eine Wettkarte darf nicht auf eine Nummerkarte gespielt werden
-       */
-      if (!play.getCard().isNumber()) {
-        return false;
+      AbstractCard peek = player.getExpeditionen().get(play.getCard().getColor()).peek();
 
-        /*
-         * Eine Nummerkarte muss eine grÃ¶ÃŸere Zahl haben als die aktuelle Zahl.
-         */
-      } else {
-        NumberCard newCard = (NumberCard) play.getCard();
-        NumberCard peek =
-            (NumberCard) player.getExpeditionen().get(play.getCard().getColor()).peek();
-        return newCard.getValue() > peek.getValue();
-      }
-
+      return play.getCard().compareTo(peek) >= 0;
 
     }
 
@@ -395,7 +389,6 @@ public class Game {
 
   }
 
-
   public Stack<AbstractCard> stapelToStack(Stapel st) {
 
     switch (st) {
@@ -420,7 +413,7 @@ public class Game {
 
   }
 
-  public List<AbstractPlayer> getPlayers() {
+  public List<AiPlayer> getPlayers() {
     return this.players;
   }
 
@@ -470,7 +463,7 @@ public class Game {
 
       }
 
-      sb.append(" " + p.getName() + "'s Punkte: " + wholeSum + "\n");
+      sb.append(" " + p.getName() + "'drawStapel Punkte: " + wholeSum + "\n");
 
     }
 
@@ -486,4 +479,131 @@ public class Game {
   public AbstractPlayer getPlayerWithTurn() {
     return this.players.get(this.turn);
   }
+
+  public int getTurn() {
+
+    return this.turn;
+  }
+
+  public void unCheckedPlay(WholePlay play, AiPlayer player) {
+    AblagePlay p = play.getOption();
+
+    // Ablegen
+    if (p.getStapel().isExpedition()) {
+      player.getExpeditionen().get(p.getCard().getColor()).add(p.getCard());
+    } else {
+      this.ablageStaepels.get(p.getCard().getColor()).add(p.getCard());
+    }
+
+    if (!player.getHandKarten().remove(p.getCard())) {
+      System.out.println(player.getHandKarten());
+      System.out.println(play);
+      throw new GameException.DoNotOwnException(player, p.getCard());
+    }
+
+
+    Stapel ziehStapel = play.getStapel();
+    AbstractCard drawedCard = null;
+
+    if (ziehStapel.equals(Stapel.NACHZIEHSTAPEL)) {
+
+      player.getHandKarten().add(this.nachZiehStapel.pop());
+
+      this.gameEnd = this.nachZiehStapel.isEmpty();
+    } else {
+      drawedCard = this.ablageStaepels.get(ziehStapel.getColor()).pop();
+
+      player.getHandKarten().add(drawedCard);
+
+      this.players.get(player.getIndex() ^ 1).addCardToModel(drawedCard);
+
+    }
+
+
+    this.turn = this.turn ^ 1;
+    this.zuege++;
+    player.setLastPlay(null);
+
+    this.players.get(player.getIndex() ^ 1).removeCardFromModel(p.getCard());
+
+
+
+  }
+
+
+  public static Game determizeGame(AiPlayer ai) {
+
+    Game g = new Game();
+
+    List<AbstractCard> neuerNachziehstapel = allCards();
+
+    g.players.forEach(con -> con.getHandKarten().clear());
+
+    /*
+     * ablagestapel kopieren
+     */
+    g.ablageStaepels.forEach((col, stack) -> {
+      stack.addAll(ai.getAblagestapel(col));
+      neuerNachziehstapel.removeAll(ai.getAblagestapel(col));
+    });
+
+
+    /*
+     * handkarten des eigenen spielers kopieren
+     */
+    g.players.get(ai.getIndex()).getHandKarten().addAll(ai.getHandKarten());
+    neuerNachziehstapel.removeAll(ai.getHandKarten());
+
+    /*
+     * eigene Expeditionen und die des Gegners kopieren.
+     */
+    g.players.get(ai.getIndex()).getExpeditionen().forEach((col, ex) -> {
+
+      ex.addAll(ai.getExpeditionen().get(col));
+      g.players.get(ai.getIndex() ^ 1).getExpeditionen().get(col)
+          .addAll(ai.getEnemyExpeditions(col));
+
+      neuerNachziehstapel.removeAll(ai.getExpeditionen().get(col));
+      neuerNachziehstapel.removeAll(ai.getEnemyExpeditions(col));
+
+    });
+
+
+    /*
+     * Gegnermodell ausfüllen
+     */
+    g.players.get(ai.getIndex() ^ 1).getHandKarten().addAll(ai.getModel());
+
+    List<AbstractCard> enemyhand = g.players.get(ai.getIndex() ^ 1).getHandKarten();
+
+    Random rng = new Random();
+    while (enemyhand.size() < 8) {
+
+      int index = rng.nextInt(neuerNachziehstapel.size());
+
+      AbstractCard add = neuerNachziehstapel.remove(index);
+
+      enemyhand.add(add);
+
+    }
+
+    g.nachZiehStapel.clear();
+    g.nachZiehStapel.addAll(neuerNachziehstapel);
+
+
+    return g;
+  }
+
+
+  public static List<AbstractCard> allCards() {
+    ArrayList<AbstractCard> allCards = new ArrayList<AbstractCard>();
+    for (Color c : Color.values()) {
+      IntStream.range(2, 11).forEach(num -> allCards.add(new NumberCard(c, num)));
+      IntStream.range(1, 4).forEach(num -> allCards.add(new WettCard(c)));
+
+    }
+
+    return allCards;
+  }
+
 }

@@ -6,10 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import domain.PlayOption;
 import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
+import domain.main.AblagePlay;
 import domain.players.AbstractPlayer;
 import domain.strategies.PlayStrategy;
 import domain.strategies.Strategies;
@@ -62,10 +62,10 @@ public class FabianISMCTSStrategy implements PlayStrategy {
    * Plays the first part (playing a card) of a move.
    */
   @Override
-  public PlayOption choosePlay(int remainingCards) {
+  public AblagePlay choosePlay(int remainingCards) {
     this.move = this.createTree(this.createGameState());
 
-    // transform PlayMove into PlayOption
+    // transform PlayMove into AblagePlay
     PlayMove playMove = this.move.getPlayMove();
     AbstractCard card = this.getHandKarten().get(playMove.getCard() - 1);
 
@@ -108,7 +108,7 @@ public class FabianISMCTSStrategy implements PlayStrategy {
       }
     }
 
-    return new PlayOption(stapel, card);
+    return new AblagePlay(stapel, card);
   }
 
   /**
@@ -143,10 +143,7 @@ public class FabianISMCTSStrategy implements PlayStrategy {
     return stapel;
   }
 
-  @Override
-  public boolean isAI() {
-    return true;
-  }
+
 
   /**
    * Creates a SO-ISMCTS and determines the best MoveSet.

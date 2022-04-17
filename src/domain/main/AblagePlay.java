@@ -1,4 +1,4 @@
-package domain;
+package domain.main;
 
 import domain.cards.AbstractCard;
 import domain.cards.Stapel;
@@ -7,7 +7,7 @@ import domain.cards.Stapel;
  * Repräsentation eines Spielzuges
  *
  */
-public class PlayOption {
+public class AblagePlay {
 
   /**
    * Die zu spielende Karte
@@ -25,7 +25,7 @@ public class PlayOption {
    * @param stapel
    * @param abstractCard
    */
-  public PlayOption(Stapel stapel, AbstractCard abstractCard) {
+  public AblagePlay(Stapel stapel, AbstractCard abstractCard) {
     this.stapel = stapel;
     this.abstractCard = abstractCard;
   }
@@ -40,7 +40,7 @@ public class PlayOption {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    PlayOption other = (PlayOption) obj;
+    AblagePlay other = (AblagePlay) obj;
     if (abstractCard == null) {
       if (other.abstractCard != null)
         return false;
@@ -75,5 +75,7 @@ public class PlayOption {
   public AbstractCard getCard() {
     return this.abstractCard;
   }
+
+
 
 }
