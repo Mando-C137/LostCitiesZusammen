@@ -304,7 +304,7 @@ public class Game {
 
   }
 
-  private void gameFlow() {
+  public void gameFlow() {
 
     int i = 0;
     int index = 0;

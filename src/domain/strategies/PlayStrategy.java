@@ -1,5 +1,6 @@
 package domain.strategies;
 
+
 import domain.cards.Stapel;
 import domain.main.AblagePlay;
 
