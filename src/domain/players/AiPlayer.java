@@ -73,15 +73,14 @@ public class AiPlayer extends AbstractPlayer {
 
 
   public List<AbstractCard> getAblagestapel(Color col) {
-
     return this.ablagestapels.get(col);
   }
 
 
   public List<AbstractCard> getModel() {
-
     return this.enemyModel;
   }
+
 
 
   public List<AbstractCard> getEnemyExpeditions(Color col) {
@@ -92,5 +91,7 @@ public class AiPlayer extends AbstractPlayer {
   public void setModel(List<AbstractCard> list) {
     this.enemyModel = list;
   }
+
+
 
 }

@@ -88,6 +88,8 @@ public abstract class AbstractPlayer {
     return this.expeditionen;
   }
 
+
+
   /**
    * Getter fÃ¼r die Karten des Spielers, die er auf der Hand hat.
    * 
