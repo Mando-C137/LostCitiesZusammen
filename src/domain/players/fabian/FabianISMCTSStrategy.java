@@ -210,7 +210,6 @@ public class FabianISMCTSStrategy implements PlayStrategy {
 
     // Discard Fields
     List<List<Card>> discardedFields = new ArrayList<>(5);
-    LinkedList<Stapel> discardedStapels = this.player.getDrawSet();
     for (Color color : colors) {
       discardedFields.add(this.transformList(this.player.getAblagestapel(color)));
     }
