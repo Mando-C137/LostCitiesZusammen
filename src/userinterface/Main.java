@@ -1,6 +1,7 @@
 package userinterface;
 
 import domain.main.Game;
+import domain.players.paul.ismcts.InformationSetStrategy;
 import domain.strategies.RandomStrategy;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -17,7 +18,11 @@ public class Main extends Application {
     // theGame = PimcStrategy.PIMCvsHuman();
     theGame = Game.twoWithoutStrategies();
     theGame.getPlayers().forEach(con -> con.setStrategy(new RandomStrategy(con)));
-    // (theGame.getPlayers().get(0))
+
+    theGame.getPlayers().get(0)
+        .setStrategy(new InformationSetStrategy(theGame.getPlayers().get(0)));
+    // theGame.getPlayers().get(0)
+    // .setStrategy(new
     // .setStrategy(new CheatMctsStrategy(theGame.getPlayers().get(0), 5000));
 
 

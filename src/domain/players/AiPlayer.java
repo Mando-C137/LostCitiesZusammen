@@ -1,5 +1,6 @@
 package domain.players;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -21,6 +22,7 @@ public class AiPlayer extends AbstractPlayer {
       Map<Color, Stack<AbstractCard>> enemyExpeditions) {
 
     super(handKarten, ablageStaepels, ownExpeditions, enemyExpeditions);
+    this.enemyModel = new ArrayList<AbstractCard>();
   }
 
 
@@ -56,19 +58,18 @@ public class AiPlayer extends AbstractPlayer {
   }
 
   public String getStrategyName() {
+
     return this.strategy.getName();
   }
 
 
   public void addCardToModel(AbstractCard drawedCard) {
     this.enemyModel.add(drawedCard);
-
   }
 
 
   public void removeCardFromModel(AbstractCard card) {
     this.enemyModel.remove(card);
-
   }
 
 
@@ -82,7 +83,6 @@ public class AiPlayer extends AbstractPlayer {
   }
 
 
-
   public List<AbstractCard> getEnemyExpeditions(Color col) {
 
     return this.enemyEx.get(col);
@@ -91,7 +91,6 @@ public class AiPlayer extends AbstractPlayer {
   public void setModel(List<AbstractCard> list) {
     this.enemyModel = list;
   }
-
 
 
 }

@@ -24,6 +24,7 @@ import domain.cards.WettCard;
 import domain.exceptions.GameException;
 import domain.players.AbstractPlayer;
 import domain.players.AiPlayer;
+import domain.players.paul.ismcts.InformationSetStrategy;
 import domain.strategies.RandomStrategy;
 
 /**
@@ -126,11 +127,7 @@ public class Game {
 
   private void initPlayers() {
 
-    /*
-     * public FabianPlayer(LinkedList<AbstractCard> handKarten, HashMap<Color, Stack<AbstractCard>>
-     * ablageStaepels, HashMap<Color, Stack<AbstractCard>> ownExpeditions, HashMap<Color,
-     * Stack<AbstractCard>> enemyExpeditions)
-     */
+
 
     Map<Color, Stack<AbstractCard>> fabiansExpeditions = this.generateExpeditions();
     Map<Color, Stack<AbstractCard>> randomsExpeditions = this.generateExpeditions();
@@ -315,11 +312,14 @@ public class Game {
 
       AbstractPlayer top = players.get(index);
       System.out.println((top.getHandKarten()));
+
       AblagePlay nextPlay = top.play(this.nachZiehStapel.size());
+      System.out.println(nextPlay);
       this.makePlay(nextPlay, top);
 
-
-      this.addCardtoPlayer(top.chooseStapel(), top);
+      Stapel chooseStapel = top.chooseStapel();
+      System.out.println(chooseStapel);
+      this.addCardtoPlayer(chooseStapel, top);
 
       System.out.println(this);
 
@@ -407,6 +407,7 @@ public class Game {
 
       if (abstractPlayer.getLastAblage() != null) {
         if (abstractPlayer.getLastAblage().equals(stapel)) {
+          System.out.println(stapel);
           throw new GameException.SameCardException();
         }
       }
@@ -476,7 +477,7 @@ public class Game {
   }
 
   public boolean getGameEnd() {
-    return this.gameEnd;
+    return this.nachZiehStapel.size() == 0;
   }
 
   public String calculateScores() {
@@ -511,7 +512,7 @@ public class Game {
 
       }
 
-      sb.append(" " + p.getName() + "'drawStapel Punkte: " + wholeSum + "\n");
+      sb.append(" " + p.getName() + "'s Punkte: " + wholeSum + "\n");
 
     }
 
@@ -524,7 +525,7 @@ public class Game {
     return this.nachZiehStapel.size();
   }
 
-  public AbstractPlayer getPlayerWithTurn() {
+  public AiPlayer getPlayerWithTurn() {
     return this.players.get(this.turn);
   }
 
@@ -579,67 +580,81 @@ public class Game {
   }
 
 
-  public static Game determizeGame(AiPlayer ai) {
+  public static Game determinizeGame(AiPlayer ai) {
 
-    Game g = new Game();
+    Game result = new Game();
 
-    List<AbstractCard> neuerNachziehstapel = allCards();
+    result.nachZiehStapel.clear();
+    result.nachZiehStapel.addAll(allCards());
 
-    g.players.forEach(con -> con.getHandKarten().clear());
+    result.players.forEach(con -> con.getHandKarten().clear());
 
     /*
      * ablagestapel kopieren
      */
-    g.ablageStaepels.forEach((col, stack) -> {
+    result.ablageStaepels.forEach((col, stack) -> {
       stack.addAll(ai.getAblagestapel(col));
-      neuerNachziehstapel.removeAll(ai.getAblagestapel(col));
+
+      for (AbstractCard card : ai.getAblagestapel(col)) {
+        result.nachZiehStapel.remove(card);
+      }
+
+
     });
 
 
     /*
      * handkarten des eigenen spielers kopieren
      */
-    g.players.get(ai.getIndex()).getHandKarten().addAll(ai.getHandKarten());
-    neuerNachziehstapel.removeAll(ai.getHandKarten());
+    result.players.get(ai.getIndex()).getHandKarten().addAll(ai.getHandKarten());
+
+
+    for (AbstractCard card : ai.getHandKarten()) {
+      result.nachZiehStapel.remove(card);
+    }
+
 
     /*
      * eigene Expeditionen und die des Gegners kopieren.
      */
-    g.players.get(ai.getIndex()).getExpeditionen().forEach((col, ex) -> {
+    for (Color col : Color.values()) {
 
-      ex.addAll(ai.getExpeditionen().get(col));
-      g.players.get(ai.getIndex() ^ 1).getExpeditionen().get(col)
+      result.players.get(ai.getIndex()).getExpeditionen().get(col)
+          .addAll(ai.getExpeditionen().get(col));
+
+      result.players.get(ai.getIndex() ^ 1).getExpeditionen().get(col)
           .addAll(ai.getEnemyExpeditions(col));
 
-      neuerNachziehstapel.removeAll(ai.getExpeditionen().get(col));
-      neuerNachziehstapel.removeAll(ai.getEnemyExpeditions(col));
+      for (AbstractCard card : ai.getExpeditionen().get(col)) {
+        result.nachZiehStapel.remove(card);
+      }
 
-    });
+      for (AbstractCard card : ai.getEnemyExpeditions(col)) {
+        result.nachZiehStapel.remove(card);
+      }
 
+
+
+    }
 
     /*
      * Gegnermodell ausfüllen
      */
-    g.players.get(ai.getIndex() ^ 1).getHandKarten().addAll(ai.getModel());
+    result.players.get(ai.getIndex() ^ 1).getHandKarten().addAll(ai.getModel());
 
-    List<AbstractCard> enemyhand = g.players.get(ai.getIndex() ^ 1).getHandKarten();
+    List<AbstractCard> enemyhand = result.players.get(ai.getIndex() ^ 1).getHandKarten();
 
     Random rng = new Random();
     while (enemyhand.size() < 8) {
 
-      int index = rng.nextInt(neuerNachziehstapel.size());
-
-      AbstractCard add = neuerNachziehstapel.remove(index);
-
+      int index = rng.nextInt(result.nachZiehStapel.size());
+      AbstractCard add = result.nachZiehStapel.remove(index);
       enemyhand.add(add);
 
     }
 
-    g.nachZiehStapel.clear();
-    g.nachZiehStapel.addAll(neuerNachziehstapel);
 
-
-    return g;
+    return result;
   }
 
 
@@ -654,7 +669,7 @@ public class Game {
     return allCards;
   }
 
-  public void replacePlayersWithSimulateStrategy() {
+  public void replacePlayersWithRandomStrategy() {
     this.players.forEach(con -> con.setStrategy(new RandomStrategy(con)));
 
   }
@@ -716,5 +731,22 @@ public class Game {
 
     return wholeSum;
   }
+
+  public static void main(String[] args) {
+    Game g = Game.twoWithoutStrategies();
+    g.players.forEach(con -> con.setStrategy(new RandomStrategy(con)));
+
+    g.players.get(0).setStrategy(new InformationSetStrategy(g.players.get(0)));
+
+
+    while (!g.getGameEnd()) {
+      AiPlayer a = g.getPlayerWithTurn();
+
+      g.unCheckedPlay(new WholePlay(a.play(g.getRemainingCards()), a.chooseStapel()), a);
+
+    }
+  }
+
+
 
 }

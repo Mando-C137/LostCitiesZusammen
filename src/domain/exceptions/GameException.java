@@ -6,7 +6,6 @@ import domain.players.AbstractPlayer;
 
 public class GameException extends RuntimeException {
 
-
   /**
    * 
    */

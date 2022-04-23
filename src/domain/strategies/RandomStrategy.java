@@ -1,42 +1,81 @@
 package domain.strategies;
 
 
-import java.util.List;
+import domain.cards.AbstractCard;
 import domain.cards.Stapel;
 import domain.main.AblagePlay;
 import domain.players.AiPlayer;
 
 public class RandomStrategy implements PlayStrategy {
 
-  private AiPlayer player;
+  private AiPlayer ai;
 
-  public RandomStrategy(AiPlayer player) {
-    this.player = player;
+  private Stapel lastPlay;
+
+
+  public RandomStrategy(AiPlayer ai) {
+    this.ai = ai;
   }
 
   @Override
   public AblagePlay choosePlay(int remainingCards) {
 
-    List<AblagePlay> ls = this.player.getPlaySet();
+    AblagePlay result = null;
 
-    return ls.get((int) (Math.random() * ls.size()));
+    int randomIndex = (int) (Math.random() * this.ai.getHandKarten().size());
+
+    AbstractCard card = this.ai.getHandKarten().get(randomIndex);
+
+    if (this.ai.getExpeditionen().get(card.getColor()).isEmpty()) {
+
+      result = new AblagePlay(Stapel.toExpedition(card.getColor()), card);
+
+    } else if (card.compareTo(this.ai.getExpeditionen().get(card.getColor()).peek()) >= 0) {
+
+      result = new AblagePlay(Stapel.toExpedition(card.getColor()), card);
+    } else {
+      result = new AblagePlay(Stapel.toMiddle(card.getColor()), card);
+    }
+
+    lastPlay = result.getStapel();
+    return result;
   }
 
   @Override
   public Stapel chooseStapel() {
-
     if (Math.random() > 0.5) {
       return Stapel.NACHZIEHSTAPEL;
     }
 
-    List<Stapel> ls = this.player.getDrawSet();
+    int randomIndex = (int) (Math.random() * Stapel.alleZiehStapel.length);
+
+    Stapel answer = Stapel.alleZiehStapel[randomIndex];
+
+    /*
+     * Stapel ist nachziehstapel
+     */
+    if (answer.getColor() == null) {
+      return Stapel.NACHZIEHSTAPEL;
+    }
+    /*
+     * Stapel ist leer oder war play
+     */
+
+    else if (this.ai.getAblagestapel(answer.getColor()).isEmpty() || this.lastPlay == answer) {
+      return Stapel.NACHZIEHSTAPEL;
+    }
+    /*
+     * stapel ist ok
+     */
+    else {
+      return answer;
+    }
 
 
-    int randomIndex = (int) (Math.random() * ls.size());
 
-
-    return ls.get(randomIndex);
   }
+
+
 
   @Override
   public String getName() {

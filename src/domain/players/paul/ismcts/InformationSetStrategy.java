@@ -39,7 +39,7 @@ public class InformationSetStrategy implements PlayStrategy {
   @Override
   public AblagePlay choosePlay(int remainingCards) {
     Game copyGame = Utils.determinizeGame(ai);
-    copyGame.replacePlayersWithSimulateStrategy();
+    copyGame.replacePlayersWithRandomStrategy();
     selectedPlay = Ismcts.ISMCTS(copyGame, copyGame.getTurn(), 50_000);
     return selectedPlay.getOption();
   }
@@ -48,7 +48,6 @@ public class InformationSetStrategy implements PlayStrategy {
   public Stapel chooseStapel() {
     return selectedPlay.getStapel();
   }
-
 
 
   @Override

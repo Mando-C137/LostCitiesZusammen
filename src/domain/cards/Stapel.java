@@ -28,6 +28,10 @@ public enum Stapel {
 
   private final Color color;
 
+  public static final Stapel alleZiehStapel[] =
+      {YELLOWMIDDLE, WHITEMIDDLE, BLUEMIDDLE, GREENMIDDLE, REDMIDDLE, NACHZIEHSTAPEL};
+
+
 
   private Stapel(Color c) {
     this.color = c;
