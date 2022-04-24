@@ -17,6 +17,8 @@ public class AiPlayer extends AbstractPlayer {
 
   List<AbstractCard> enemyModel;
 
+  private int remaining;
+
   public AiPlayer(List<AbstractCard> handKarten, Map<Color, Stack<AbstractCard>> ablageStaepels,
       Map<Color, Stack<AbstractCard>> ownExpeditions,
       Map<Color, Stack<AbstractCard>> enemyExpeditions) {
@@ -50,6 +52,8 @@ public class AiPlayer extends AbstractPlayer {
 
   @Override
   public AblagePlay play(int remainingCards) {
+
+    this.remaining = remainingCards;
     if (strategy == null) {
       throw new RuntimeException("Strategy darf nicht null sein");
     }
@@ -83,13 +87,20 @@ public class AiPlayer extends AbstractPlayer {
   }
 
 
-  public List<AbstractCard> getEnemyExpeditions(Color col) {
+  public Stack<AbstractCard> getEnemyExpeditions(Color col) {
 
     return this.enemyEx.get(col);
   }
 
   public void setModel(List<AbstractCard> list) {
     this.enemyModel = list;
+  }
+
+
+
+  public int getRemainingCards() {
+
+    return remaining;
   }
 
 
