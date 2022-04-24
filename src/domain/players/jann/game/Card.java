@@ -26,21 +26,29 @@ public class Card implements Cloneable{
 
   public String getShort(){
     String s = "";
-    s += this.getColorChar() + " " + this.getValue();
+    if(this.getValue()>1) s += this.getColorChar() + " " + this.getValue();
+    if(this.getValue()<2) s += this.getColorChar() + " " + "CC";
+    return s;
+  }
+
+  public String getShortWithoutColor(){
+    String s = "";
+    if(this.getValue()>1) s += + this.getValue();
+    if(this.getValue()<2) s += "CC";
     return s;
   }
 
   public char getColorChar(){
     switch (color) {
-      case 1:
+      case 0:
         return 'Y';
-      case 2:
+      case 1:
         return 'B';
-      case 3:
+      case 2:
         return 'W';
-      case 4:
+      case 3:
         return 'G';
-      case 5:
+      case 4:
         return 'R';
     }
     return 'X';

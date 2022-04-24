@@ -9,77 +9,82 @@ import domain.cards.WettCard;
 import domain.main.AblagePlay;
 import domain.main.Game;
 import domain.players.AiPlayer;
+import domain.players.fabian.FabianISMCTSStrategy;
 import domain.players.jann.game.Card;
 import domain.players.jann.game.Move;
 import domain.players.jann.player.ISPlayer;
 import domain.strategies.PlayStrategy;
-import domain.strategies.RandomStrategy;
+import domain.strategies.Strategies;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class JannStrategy implements PlayStrategy {
 
-ISPlayer jannPlayer = new ISPlayer(true,1000,0.7,0);
+ISPlayer jannPlayer = new ISPlayer(2,10000,50,1,true);
+int[] countCC = new int[]{-1,-1,-1,-1,-1};
 Move jannMove;
 AiPlayer information;
+int turnCount;
 
 public JannStrategy(AiPlayer information){
   this.information = information;
+  this.turnCount = 0;
 }
 
 public static void main(String[] args){
-  Game game;
-  game = Game.twoWithoutStrategies();
-  game.getPlayers().get(0).setStrategy(new JannStrategy(game.getPlayers().get(0)));
-  game.getPlayers().get(1).setStrategy(new RandomStrategy(game.getPlayers().get(1)));
-
+  StringBuilder sb = new StringBuilder("");
+  //game.getPlayers().get(0).setStrategy(new InformationSetStrategy(game.getPlayers().get(0)));
+for(int i = 0;i<1;i++) {
+  Game game = new Game();
+  game.getPlayers().get(1).setStrategy(new JannStrategy(game.getPlayers().get(1)));
+  game.getPlayers().get(0).setStrategy(new FabianISMCTSStrategy(game.getPlayers().get(0)));
   game.gameFlow();
+  sb.append(game.calculateScores());
+}
+System.out.println(sb);
 }
 
   @Override
   public AblagePlay choosePlay(int remainingCards) {
+  countCC = new int[]{-1,-1,-1,-1,-1};
+  turnCount += 2;
   Stack<Card>[] discardPile = createDiscardPile();
   Stack<Card>[] oppExp = createEnemyExpeditions();
   Stack<Card>[] myExp = translateMap(information.getExpeditionen());
   Card[] hand = translateHand(information.getHandKarten());
   boolean turn = (information.getIndex()==0)?true:false;
-  jannMove = jannPlayer.makeMove(hand,myExp,oppExp,discardPile,turn);
+  jannMove = jannPlayer.makeMove(hand,myExp,oppExp,discardPile,turn,turnCount);
   Card toPlace = hand[jannMove.getCardIndex()];
+  AbstractCard paulCard = information.getHandKarten().get(jannMove.getCardIndex());
   AblagePlay ablagePlay = new AblagePlay(getStapelFromMove(jannMove,toPlace),translateCardToPaul(toPlace));
     return ablagePlay;
   }
 
   @Override
   public Stapel chooseStapel() {
-    Stapel stapel;
+  if(jannMove.getDrawFrom()==0){
+    return Stapel.NACHZIEHSTAPEL;
+  }
     switch(jannMove.getDrawFrom()){
-      case 0:
-        stapel = Stapel.NACHZIEHSTAPEL;
-        break;
       case 1:
-        stapel = Stapel.toMiddle(Color.YELLOW);
-        break;
+        return Stapel.toMiddle(Color.YELLOW);
       case 2:
-        stapel = Stapel.toMiddle(Color.BLUE);
-        break;
+        return Stapel.toMiddle(Color.BLUE);
       case 3:
-        stapel = Stapel.toMiddle(Color.WHITE);
-        break;
+        return Stapel.toMiddle(Color.WHITE);
       case 4:
-        stapel = Stapel.toMiddle(Color.GREEN);
-        break;
+        return Stapel.toMiddle(Color.GREEN);
       case 5:
-        stapel = Stapel.toMiddle(Color.RED);
-        break;
-      default: stapel = null;
+        return Stapel.toMiddle(Color.RED);
+      default: return null;
     }
-    return stapel;
   }
 
   @Override
   public String getName() {
-    return null;
+    return Strategies.JANN_ISMCTS.name();
   }
 
   public Stapel getStapelFromMove(Move move,Card card){
@@ -112,10 +117,10 @@ public static void main(String[] args){
   }
 
   private Stack<Card> translateStack(List<AbstractCard> paulStack){
-  Stack<Card> jannStack = new Stack<Card>();
-  for(AbstractCard abstractCard : paulStack){
-    jannStack.add(translateCardToJann(abstractCard));
-  }
+    List<Card> jannList =
+        paulStack.stream().map(ele -> translateCardToJann(ele)).collect(Collectors.toList());
+    Stack<Card> jannStack = new Stack<Card>();
+    jannStack.addAll(jannList);
   return  jannStack;
   }
 
@@ -126,21 +131,11 @@ public static void main(String[] args){
     Stack<AbstractCard> weiss = mapPaul.get(Color.WHITE);
     Stack<AbstractCard> gruen = mapPaul.get(Color.GREEN);
     Stack<AbstractCard> rot = mapPaul.get(Color.RED);
-    for(AbstractCard abstractCard : gelb){
-      stackArray[0].add(translateCardToJann(abstractCard));
-    }
-    for(AbstractCard abstractCard : blau){
-      stackArray[1].add(translateCardToJann(abstractCard));
-    }
-    for(AbstractCard abstractCard : weiss){
-      stackArray[2].add(translateCardToJann(abstractCard));
-    }
-    for(AbstractCard abstractCard : gruen){
-      stackArray[3].add(translateCardToJann(abstractCard));
-    }
-    for(AbstractCard abstractCard : rot){
-      stackArray[4].add(translateCardToJann(abstractCard));
-    }
+    stackArray[0] = translateStack(gelb);
+    stackArray[1] = translateStack(blau);
+    stackArray[2] = translateStack(weiss);
+    stackArray[3] = translateStack(gruen);
+    stackArray[4] = translateStack(rot);
     return stackArray;
   }
 
@@ -154,6 +149,10 @@ public static void main(String[] args){
   }
 
   private Card translateCardToJann(AbstractCard abstractCard){
+  if(!abstractCard.isNumber()){
+    int color = turnEnumIntoColor(abstractCard.getColor());
+    return new Card(color,countCC[color]++);
+  }
     return new Card(turnEnumIntoColor(abstractCard.getColor()),abstractCard.getValue());
   }
 

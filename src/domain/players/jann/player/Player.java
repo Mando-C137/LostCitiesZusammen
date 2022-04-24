@@ -1,6 +1,5 @@
 package domain.players.jann.player;
 
-
 import domain.players.jann.game.Card;
 import domain.players.jann.game.Move;
 import domain.players.jann.game.Session;
@@ -10,6 +9,7 @@ public abstract class Player {
 
   boolean isCheating = false;
   boolean imP1;
+  boolean hasMemory = false;
 
   public Player(){}
 
@@ -23,7 +23,7 @@ public abstract class Player {
    * Specific implementation may vary.
    * @return the move the player choses
    */
-  public abstract Move makeMove(Card[] myHand, Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile,boolean turn);
+  public abstract Move makeMove(Card[] myHand, Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile,boolean turn,int turnCounter);
 
   /**
    * This method returns the top card of any stack containing cards.
@@ -67,24 +67,35 @@ public abstract class Player {
     return false;
   }
 
-  public static void printGameBoard(Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile){
-    StringBuilder sb = new StringBuilder("GameBoard:\nOpponent Expeditions:");
+  public static void printGameBoard(Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile,int[] scores){
+    StringBuilder sb = new StringBuilder("GameBoard:\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tPlayer1 -> "
+        + scores[0] + " : Player2 -> " + scores[1] +"\nOpponent Expeditions:\t");
     int count = 0;
     String[] colors ={"Y->","B->","W->","G->","R->"};
     for(Stack<Card> c : oppExp){
+      sb.append("\n");
       sb.append(colors[count++]);
       sb.append(c);
-      sb.append("\t");
     }
+    sb.append("\nDiscard Pile:\t\t\t");
+    count = 0;
     for(Stack<Card> c: discardPile){
+      sb.append(colors[count++] + "[");
       if(!c.isEmpty() && c.peek()!=null) sb.append(c.peek());
+      sb.append("]\t\t\t\t");
     }
+    sb.append("\nMy expeditions:\t\t\t\t");
     count = 0;
     for(Stack<Card> c : myExp){
+      sb.append("\n");
       sb.append(colors[count++]);
       sb.append(c);
-      sb.append("\t");
     }
+    System.out.println(sb);
+  }
+
+  public boolean hasMemory(){
+    return this.hasMemory;
   }
 
   /** Get methods*/

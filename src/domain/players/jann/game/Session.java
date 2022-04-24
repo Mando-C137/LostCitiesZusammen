@@ -1,5 +1,6 @@
 package domain.players.jann.game;
 
+import domain.players.jann.player.MemoryPlayer;
 import domain.players.jann.player.Player;
 import domain.players.jann.player.RandomPlayer;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class Session {
   private Stack<Card>[] discardPile; //discardPile[0]=yellow stack etc.
   private Stack<Card>[][] expeditions; //expedtions[1][4]=player2 red exp etc.
   private boolean turn;
+  private int turnCounter = 0;
 
   public Session(Player p1,Player p2){
     initDrawStack();
@@ -75,72 +77,140 @@ public class Session {
     turn = copy.isTurn();
   }
 
+  public int[] playGame(){
+    int countOnExp = 0;
+    int drawFromDiscardCount = 0;
+    while(!this.isOver()){
+      int atTurn = (turn)?0:1;
+      int notAtTurn = (turn)?1:0;
+      Move made;
+      if(players[atTurn].isCheating()){
+        made = players[atTurn].makeMove(this);
+      } else {
+        made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn], expeditions[notAtTurn], discardPile,turn,turnCounter);
+      }
+      if(made.onExp) countOnExp++;
+      if(made.drawFrom>0) drawFromDiscardCount++;
+      executeMove(made);
+    }
+    int[] gameEndInformation = new int[7];
+    int[] scores = calcPoints();
+    gameEndInformation[0] = scores[0];
+    gameEndInformation[1] = scores[1];
+    gameEndInformation[2] = turnCounter;
+    gameEndInformation[3] = countOnExp;
+    gameEndInformation[4] = drawFromDiscardCount;
+    gameEndInformation[5] = countExpsStarted(true);
+    gameEndInformation[6] = countExpsStarted(false);
+    return gameEndInformation;
+  }
+
+  public int countExpsStarted(boolean p1){
+    int numberExpStarted = 0;
+    if(p1) for(int i = 0;i<5;i++) if(expeditions[0][i].size()>0) numberExpStarted++;
+    if(!p1) for(int i = 0;i<5;i++) if(expeditions[1][i].size()>0) numberExpStarted++;
+    return numberExpStarted;
+  }
+
   /**
    * Executes game and returns winner.
    * @return true if player 1 is winner
    */
-  public int[] playGame(){
-    long start = System.currentTimeMillis();
-    long end;
-    int countTurns = 0;
-    while(!drawStack.empty()){
-      end = System.currentTimeMillis();
+  public int[] playGameWithPrints(){
+    int countOnExp = 0;
+    while(!this.isOver()){
       int atTurn = (turn)?0:1;
       int notAtTurn = (turn)?1:0;
       Move made;
       if(players[atTurn].isCheating()){
         made = players[atTurn].makeMove(this);
       } else {
-        made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn], expeditions[notAtTurn], discardPile,turn);
+        made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn], expeditions[notAtTurn], discardPile,turn,turnCounter);
+        String onto = (made.onExp)?"Expedition":"Discard Pile";
+        String drawFrom ="";
+        switch (made.getDrawFrom()){
+          case 0: drawFrom="DrawStack";
+          break;
+          case 1: drawFrom="Yellow Discard Pile";
+            break;
+          case 2: drawFrom="Blue Discard Pile";
+            break;
+          case 3: drawFrom="White Discard Pile";
+            break;
+          case 4: drawFrom="Green Discard Pile";
+            break;
+          case 5: drawFrom="Red Discard Pile";
+            break;
+        }
+        Card drawn = null;
+        if(made.getDrawFrom()!=0){
+          drawn = discardPile[made.getDrawFrom()-1].peek().clone();
+        }
+        System.out.println("\nPlay " + getHandAtTurn()[made.cardIndex] + " onto " + onto + " and draw from " + drawFrom + " " + drawn);
+        printHand(getHandAtTurn());
+        Player.printGameBoard(expeditions[0],expeditions[1],discardPile,calcPoints());
+        printDivider();
       }
-      /*if(atTurn==0) System.out.println(this + "\nCards: " + playercards[0][0] + playercards[0][1]
-          + playercards[0][2] + playercards[0][3] + playercards[0][4] + playercards[0][5]
-          + playercards[0][6] + playercards[0][7] + "\n");*/
+      if(made.onExp) countOnExp++;
       executeMove(made);
-      turn = !turn;
-      countTurns++;
-      //System.out.println("Turn Nr. "+ countTurns + ";\tPlayer Nr." + atTurn + ";\tCards left -->" + getCardsLeft());
+      //System.out.println("Move made -> Cards left:" + drawStack.size());
     }
-    System.out.println("Turns: " + countTurns);
-    return calcPoints();
+    int[] gameEndInformation = new int[4];
+    int[] scores = calcPoints();
+    gameEndInformation[0] = scores[0];
+    gameEndInformation[1] = scores[1];
+    gameEndInformation[2] = turnCounter;
+    gameEndInformation[3] = countOnExp;
+    return gameEndInformation;
+  }
+
+  public void printHand(Card[] myHand){
+    StringBuilder sb = new StringBuilder("My cards: ");
+    int counter = 1;
+    for(Card c: myHand){
+      sb.append("\tCard " + counter++);
+      sb.append(c);
+      sb.append(", \t");
+    }
+    System.out.println(sb);
+  }
+
+  private void printDivider(){
+    System.out.println("__________________________________________________________________________");
+  }
+
+  public void playGameWithGUI(){
+    if(!this.isOver()){
+      int atTurn = (turn)?0:1;
+      int notAtTurn = (turn)?1:0;
+      if(players[atTurn].isCheating()){
+        //GUI Interaction
+      } else {
+        executeMove(players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn], expeditions[notAtTurn], discardPile,turn,turnCounter));
+        playGameWithGUI();
+      }
+    } else {
+      System.out.println("Game Over\nScore Player 1 -> " + this.calcPointsPlayer(0) +
+          "\nScore Player 2 -> " + this.calcPointsPlayer(1));
+    }
   }
 
   public int[] simGame(){
-    long start = System.currentTimeMillis();
-    long end;
-    while(!drawStack.empty()){
-      end = System.currentTimeMillis();
+    while(!this.isOver() && turnCounter<100){
       int atTurn = (turn)?0:1;
       int notAtTurn = (turn)?1:0;
-      Move made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn],expeditions[notAtTurn],discardPile,turn);
+      Move made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn],expeditions[notAtTurn],discardPile,turn,turnCounter);
       executeMove(made);
-      turn = !turn;
     }
     return calcPoints();
   }
-
-  public int[] cheatGame(){
-    while(!drawStack.empty()){
-      int atTurn = (turn)?0:1;
-      int notAtTurn = (turn)?1:0;
-      Move made;
-      if(players[atTurn].isCheating()){
-        made = players[atTurn].makeMove(this);
-      } else {
-        made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn], expeditions[notAtTurn], discardPile,turn);
-      }
-      executeMove(made);
-      turn = !turn;
-    }
-    return calcPoints();
-  }
-
   /**
    * This method turns move into change in game and indicates success.
    * @param move is the move proposed by the player
    * @return whether the move was legal
    */
   public boolean executeMove(Move move){
+    turnCounter++;
     int player = (turn)?0:1;
     int cardIndex = move.getCardIndex();
     boolean onExp = move.isOnExp();
@@ -155,6 +225,7 @@ public class Session {
     } else {
       drawFromDiscardPile(drawFrom,cardIndex,player);
     }
+    turn = !turn;
     return true;//subject to change @TODO
   }
 
@@ -234,11 +305,23 @@ public class Session {
    * @param p2 is the second player
    */
   private void initPlayers(Player p1,Player p2){
+    players = new Player[2];
     p1.setImP1(true);
     p2.setImP1(false);
-    players = new Player[2];
-    players[0] = p1;
-    players[1] = p2;
+    if(p1.hasMemory()) {
+      MemoryPlayer p1IS = (MemoryPlayer) p1;
+      p1IS.resetMemory();
+      players[0] = p1IS;
+    } else {
+      players[0] = p1;
+    }
+    if(p2.hasMemory()) {
+      MemoryPlayer p2IS = (MemoryPlayer) p2;
+      p2IS.resetMemory();
+      players[1] = p2IS;
+    } else {
+      players[1] = p2;
+    }
   }
 
   /**
@@ -328,9 +411,8 @@ public class Session {
 
   public Card[] getHandAtTurn(){ return (turn)?playercards[0]:playercards[1]; }
 
-  public int getCardsLeft(){
-    return drawStack.size();
-  }
+  public Stack<Card>[] getExpAtTurn(){ return (turn)?expeditions[0]:expeditions[1]; }
+
 
   public boolean isTurn(){
     return turn;
@@ -342,6 +424,7 @@ public class Session {
 
   public boolean isOver(){
     if(drawStack.isEmpty()) return true;
+    if(turnCounter>100) return true;
     return false;
   }
 
@@ -368,6 +451,10 @@ public class Session {
         "\nExpeditions Player 2 " + stacksToString(expeditions[1]) +
         "\nScore Player 1: " + scores[0] +
         "\tScore Player 2. " + scores[1];
+  }
+
+  public int getNumberCardsLeft(){
+    return drawStack.size();
   }
 
   /**
@@ -484,8 +571,8 @@ public class Session {
     return false;
   }
 
-  public Card[][] getPlayercards() {
-    return playercards;
+  public void setTurnCounter(int turnCounter) {
+    this.turnCounter = turnCounter;
   }
 
   public Stack<Card>[] getDiscardPile() {

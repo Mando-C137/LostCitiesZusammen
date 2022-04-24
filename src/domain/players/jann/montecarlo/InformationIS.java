@@ -4,6 +4,7 @@ import domain.players.jann.game.Card;
 import domain.players.jann.game.Session;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Stack;
 
 public class InformationIS {
@@ -15,9 +16,11 @@ public class InformationIS {
   Stack<Card>[] discardPile;
   boolean turn;
   boolean imP1;
+  int turnCounter;
   ArrayList<Card> oppCardsObserved;//@TODO
 
-  public InformationIS(Card[] hand,Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile,boolean turn,boolean imP1){
+  public InformationIS(Card[] hand,Stack<Card>[] myExp,Stack<Card>[] oppExp,Stack<Card>[] discardPile,
+      boolean turn,boolean imP1,int turnCounter,ArrayList<Card> oppCards){
     myHand = clone(hand);
     this.myExp = clone(myExp);
     this.oppExp = clone(oppExp);
@@ -29,19 +32,31 @@ public class InformationIS {
     for(Stack<Card> stack : oppExp){ observedCards.addAll(stack); }
     for(Stack<Card> stack : discardPile){ observedCards.addAll(stack); }
     for(int i = 0;i<8;i++){ observedCards.add(myHand[i]); }
+    this.turnCounter = turnCounter;
+    oppCardsObserved = oppCards;
   }
 
   public Session createDeterminization(){
     Session determinization;
-    ArrayList<Card> observedCards = this.observedCards; //Set of Cards player has seen
-    //@TODO: observedCards.addAll(oppCardsObserved);
-    ArrayList<Card> remainingCards = createCardDeck(); //Set of game cards used to play
-    remainingCards.removeAll(observedCards); //Keep cards not observed yet
+    ArrayList<Card> observedCards = this.observedCards;
+    /*for(int i = 0;i<oppCardsObserved.size();i++){//Set of Cards player has seen
+      if(!observedCards.contains(oppCardsObserved.get(i))) observedCards.add(oppCardsObserved.get(i));
+    }*/
+    //observedCards.addAll(oppCardsObserved);
+    ArrayList<Card> remainingCardsHS = createCardDeck(); //Set of game cards used to play -> as HashSet to increase speed of removeAll
+    remainingCardsHS.removeAll(observedCards);
+    remainingCardsHS.removeAll(oppCardsObserved);//Keep cards not observed yet
     Stack<Card> newDrawStack = new Stack<>();
-    Collections.shuffle(remainingCards);
-    newDrawStack.addAll(remainingCards);//Create new drawStack
+    newDrawStack.addAll(remainingCardsHS);
+    Collections.shuffle(newDrawStack);
     Card[] oppHand = new Card[8];
-    for(int i = 0;i<8;i++) {
+    if(oppCardsObserved.size()>8){
+      int debug = 0;
+    }
+    for(int i = 0;i<oppCardsObserved.size();i++){
+      oppHand[i] = oppCardsObserved.get(i);
+    }
+    for(int i = oppCardsObserved.size();i<8;i++) {
       oppHand[i] = newDrawStack.pop();
     }
     Card[][] hands;
@@ -54,6 +69,7 @@ public class InformationIS {
       expeditions = new Stack[][]{clone(oppExp), clone(myExp)};
     }
     determinization = new Session(hands,newDrawStack,clone(discardPile),expeditions,turn);
+    determinization.setTurnCounter(turnCounter);
     return determinization;
   }
 

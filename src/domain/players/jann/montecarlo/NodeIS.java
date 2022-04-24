@@ -6,7 +6,6 @@ import domain.players.jann.game.Session;
 import java.util.ArrayList;
 import java.util.Stack;
 
-
 public class NodeIS {
 
   ArrayList<NodeIS> children;
@@ -100,7 +99,7 @@ public class NodeIS {
         if(expMovePossible){
           moves.add(new Move(i,true,possibleDraws[j]));
         }
-        if(color!=possibleDraws[j]){
+        if(color+1!=possibleDraws[j]){
           moves.add(new Move(i,false,possibleDraws[j]));
         }
       }
