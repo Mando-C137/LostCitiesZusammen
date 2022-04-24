@@ -270,7 +270,7 @@ public class Informationset {
 
     return this.children.stream()
         .filter(child -> child.incomingAction.getStapel() == Stapel.NACHZIEHSTAPEL)
-        .map(m -> m.incomingAction).findFirst().orElseThrow();
+        .map(m -> m.incomingAction).findFirst().orElse(this.children.get(0).incomingAction);
 
   }
 

@@ -6,6 +6,7 @@ import domain.cards.AbstractCard;
 import domain.main.Game;
 import domain.main.WholePlay;
 import domain.players.AiPlayer;
+import domain.players.paul.Utils;
 
 /**
  * Information Set - MCTS
@@ -27,9 +28,9 @@ public class Ismcts {
 
     Informationset root = new Informationset(rootIndex, null, null);
 
-    for (int i = 0; i < iterations; i++) {
+    for (int i = 0; i < 100; i++) {
 
-      Game determinizedState = Ismcts.determinize(realState, rootIndex);
+      Game determinizedState = Utils.determinizeGame(realState.getPlayerWithTurn());
 
       Informationset selectedSet = root.selectBestChild(determinizedState, rootIndex);
 
@@ -79,6 +80,10 @@ public class Ismcts {
       result.getPlayers().get(myPlayer ^ 1).getHandKarten().add(cardToGiveToOpponent);
     }
 
+
+    System.out.println("nachziehstapel size = " + game.getNachziehstapel().size());
+    System.out.println("neue size = " + result.getNachziehstapel().size());
+
     return result;
 
 
@@ -95,6 +100,7 @@ public class Ismcts {
   private static double simulateBinary(Game g, int rootIndex) {
 
     Game toSimulate = new Game(g);
+    toSimulate.replacePlayersWithRandomStrategy();
     int playerIndex = g.getTurn() ^ 1;
     int nextPlayer = playerIndex ^ 1;
 
