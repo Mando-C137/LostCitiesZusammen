@@ -39,10 +39,10 @@ public class InformationIS {
   public Session createDeterminization(){
     Session determinization;
     ArrayList<Card> observedCards = this.observedCards;
-    /*for(int i = 0;i<oppCardsObserved.size();i++){//Set of Cards player has seen
-      if(!observedCards.contains(oppCardsObserved.get(i))) observedCards.add(oppCardsObserved.get(i));
-    }*/
-    //observedCards.addAll(oppCardsObserved);
+    //for(int i = 0;i<oppCardsObserved.size();i++){//Set of Cards player has seen
+    //  if(!observedCards.contains(oppCardsObserved.get(i))) observedCards.add(oppCardsObserved.get(i));
+    //}
+    observedCards.addAll(oppCardsObserved);
     ArrayList<Card> remainingCardsHS = createCardDeck(); //Set of game cards used to play -> as HashSet to increase speed of removeAll
     remainingCardsHS.removeAll(observedCards);
     remainingCardsHS.removeAll(oppCardsObserved);//Keep cards not observed yet
@@ -50,14 +50,13 @@ public class InformationIS {
     newDrawStack.addAll(remainingCardsHS);
     Collections.shuffle(newDrawStack);
     Card[] oppHand = new Card[8];
-    if(oppCardsObserved.size()>8){
-      int debug = 0;
-    }
-    for(int i = 0;i<oppCardsObserved.size();i++){
+    for(int i = 0;i<oppCardsObserved.size() && i<8;i++){
       oppHand[i] = oppCardsObserved.get(i);
     }
-    for(int i = oppCardsObserved.size();i<8;i++) {
-      oppHand[i] = newDrawStack.pop();
+    if(!newDrawStack.isEmpty()) {
+      for (int i = oppCardsObserved.size(); i < 8; i++) {
+        oppHand[i] = newDrawStack.pop();
+      }
     }
     Card[][] hands;
     Stack<Card>[][] expeditions;

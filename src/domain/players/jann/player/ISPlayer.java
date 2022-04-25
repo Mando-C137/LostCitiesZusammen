@@ -17,6 +17,7 @@ public class ISPlayer extends MemoryPlayer{
   int rewardStrategy; //0 =
   private ArrayList<Card> cardsOfOpp = new ArrayList<>();
   private Stack<Card>[] oldDiscardPile = new Stack[]{new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>()};
+  private Stack<Card>[] oldOppExp = new Stack[]{new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>()};
 
   public ISPlayer(int playOutStyle,int time,double explorationConstant,int rewardStrategy,boolean reduceBranching){
     super();
@@ -35,6 +36,7 @@ public class ISPlayer extends MemoryPlayer{
     Move m = MonteCarloIS
         .ismcts(information,time,playOutStyle,explorationConstant,rewardStrategy,reduceBranching);
     memorizeDiscardPile(discardPile,m,myHand);
+    memorizeOppExpPile(oppExp);
     return m;
   }
 
@@ -59,12 +61,23 @@ public class ISPlayer extends MemoryPlayer{
     int counter = 0;
     for(Card c : cardsOfOpp){
       int color = c.getColor();
-      if(!discardPile[color].isEmpty() && c.equals(discardPile[color].peek())) remove = counter;
-      if(!oppExp[color].isEmpty() && c.equals(oppExp[color].peek())) remove = counter;
+      if(discardPile[color].size()>oldDiscardPile[color].size() && (c.equals(discardPile[color]) || (c.isCoinCard()&&discardPile[color].peek().isCoinCard()))) remove = counter;
+      if(oppExp[color].size()>oldOppExp[color].size() && (c.equals(oppExp[color]) || (c.isCoinCard()&&oppExp[color].peek().isCoinCard()))) remove = counter;
+      //if(oppExp[color].size()>oldOppExp[color].size()) remove = counter;
       counter++;
     }
     if(remove>=0){
       cardsOfOpp.remove(remove);
+    }
+  }
+
+  public void memorizeOppExpPile(Stack<Card>[] oppExp) {
+    oldDiscardPile = new Stack[]{new Stack<Card>(), new Stack<Card>(), new Stack<Card>(),
+        new Stack<Card>(), new Stack<Card>()};
+    for (int i = 0; i < 5; i++) {
+      for (Card c : oppExp[i]) {
+        oldOppExp[i].add(c.clone());
+      }
     }
   }
 
@@ -87,6 +100,7 @@ public class ISPlayer extends MemoryPlayer{
   public void resetMemory(){
     this.oldDiscardPile = new Stack[]{new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>()};
     this.cardsOfOpp = new ArrayList<>();
+    this.oldOppExp = new Stack[]{new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>(), new Stack<Card>()};
   }
   @Override
   public Move makeMove(Session session) {

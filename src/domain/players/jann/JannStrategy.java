@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class JannStrategy implements PlayStrategy {
 
-ISPlayer jannPlayer = new ISPlayer(2,10000,50,1,true);
+ISPlayer jannPlayer = new ISPlayer(2,5000,100,1,true);
 int[] countCC = new int[]{-1,-1,-1,-1,-1};
 Move jannMove;
 AiPlayer information;
@@ -35,15 +35,21 @@ public JannStrategy(AiPlayer information){
 
 public static void main(String[] args){
   StringBuilder sb = new StringBuilder("");
+  int[] wins = new int[]{0,0}; //wins[0]=get(1).set
+  int[] scores = new int[]{0,0};
   //game.getPlayers().get(0).setStrategy(new InformationSetStrategy(game.getPlayers().get(0)));
-for(int i = 0;i<1;i++) {
+for(int i = 0;i<12;i++) {
   Game game = new Game();
   game.getPlayers().get(1).setStrategy(new JannStrategy(game.getPlayers().get(1)));
   game.getPlayers().get(0).setStrategy(new FabianISMCTSStrategy(game.getPlayers().get(0)));
   game.gameFlow();
   sb.append(game.calculateScores());
+  scores[0] = game.calculateScore(game.getPlayers().get(0));
+  scores[1] = game.calculateScore(game.getPlayers().get(1));
+  if(game.calculateWinnerIndex(0)==0) wins[0]++;
+  if(game.calculateWinnerIndex(1)==1) wins[1]++;
 }
-System.out.println(sb);
+System.out.println(sb + " Wins Jann " + wins[1] + "\tWins Fabian " + wins[0] + "\tScores Jann " + scores[1] + "\tScores Fabian " + scores[0]);
 }
 
   @Override
