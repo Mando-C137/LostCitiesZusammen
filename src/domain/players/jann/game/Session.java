@@ -196,7 +196,7 @@ public class Session {
   }
 
   public int[] simGame(){
-    while(!this.isOver() && turnCounter<100){
+    while(!this.isOver() && turnCounter<150){
       int atTurn = (turn)?0:1;
       int notAtTurn = (turn)?1:0;
       Move made = players[atTurn].makeMove(playercards[atTurn],expeditions[atTurn],expeditions[notAtTurn],discardPile,turn,turnCounter);
