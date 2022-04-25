@@ -1,8 +1,9 @@
 package experiments;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import domain.main.Game;
-import domain.strategies.SimpleStrategy;
+import domain.players.fabian.FabianISMCTSStrategy;
+import domain.players.paul.ismcts.InformationSetStrategy;
 
 public class Executioner {
 
@@ -26,15 +27,15 @@ public class Executioner {
 
     ExperimentInfo info = new ExperimentInfo();
 
+    System.out.println("start");
 
-
-    LocalTime in_six_hours = LocalTime.now().plusHours(8);
+    LocalDateTime in_six_hours = LocalDateTime.now().plusHours(9);
 
     int i = 0;
-    for (; LocalTime.now().isBefore(in_six_hours); i++) {
+    for (; LocalDateTime.now().isBefore(in_six_hours); i++) {
       game = Game.twoWithoutStrategies();
-      game.getPlayers().get(1).setStrategy(new SimpleStrategy(game.getPlayers().get(1)));
-
+      game.getPlayers().get(0).setStrategy(new InformationSetStrategy(game.getPlayers().get(0)));
+      game.getPlayers().get(1).setStrategy(new FabianISMCTSStrategy(game.getPlayers().get(1)));
       // for (AiPlayer p : game.getPlayers()) {
       // p.setStrategy(new SecondRandomStrategy(p));
       // }
@@ -57,16 +58,14 @@ public class Executioner {
         info.printInfo();
       }
 
-      if (true) {
-        break;
-      }
+
 
     }
 
     info.printInfo();
 
 
-    System.out.println("IS_MCTS vs simple, iterationen10, simulations-stategie: simple, C=0.7");
+    System.out.println("ich vs fabian, iterationen10, simulations-stategie: simple, C=0.7");
 
 
   }

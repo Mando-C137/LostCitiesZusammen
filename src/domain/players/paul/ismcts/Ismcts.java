@@ -24,11 +24,11 @@ public class Ismcts {
    * @param iterations
    * @return
    */
-  public static WholePlay ISMCTS(final Game realState, final int rootIndex, final int iterations) {
+  public static WholePlay ISMCTS(final Game realState, final int rootIndex, final int millis) {
 
     Informationset root = new Informationset(rootIndex, null, null);
 
-    for (int i = 0; i < 100; i++) {
+    for (double start = System.currentTimeMillis(); System.currentTimeMillis() - start <= millis;) {
 
       Game determinizedState = Utils.determinizeGame(realState.getPlayerWithTurn());
 
@@ -50,7 +50,7 @@ public class Ismcts {
     }
 
     WholePlay finalSelection = root.finalSelection();
-    root.printInfo();
+    // root.printInfo();
     return finalSelection;
 
   }
@@ -100,11 +100,11 @@ public class Ismcts {
   private static double simulateBinary(Game g, int rootIndex) {
 
     Game toSimulate = new Game(g);
-    toSimulate.replacePlayersWithRandomStrategy();
+    toSimulate.replacePlayersWithSimple();
     int playerIndex = g.getTurn() ^ 1;
     int nextPlayer = playerIndex ^ 1;
 
-    while (!toSimulate.getGameEnd()) {
+    while (!toSimulate.getGameEnd() && toSimulate.getZuege() < 100) {
 
       AiPlayer abs = toSimulate.getPlayers().get(toSimulate.getTurn());
       WholePlay nextPlay =
