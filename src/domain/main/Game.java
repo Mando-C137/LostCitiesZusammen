@@ -26,6 +26,7 @@ import domain.players.AbstractPlayer;
 import domain.players.AiPlayer;
 import domain.players.paul.ismcts.InformationSetStrategy;
 import domain.strategies.RandomStrategy;
+import domain.strategies.SimpleStrategy;
 
 /**
  * Die Gameinstanz, von der man das Spiel steuert und Referenzen auf alle nÃ¶tigen Objekte hat.
@@ -127,8 +128,6 @@ public class Game {
 
   private void initPlayers() {
 
-
-
     Map<Color, Stack<AbstractCard>> fabiansExpeditions = this.generateExpeditions();
     Map<Color, Stack<AbstractCard>> randomsExpeditions = this.generateExpeditions();
 
@@ -153,6 +152,7 @@ public class Game {
     }
 
     this.turn = 0;
+    this.zuege = 0;
   }
 
   public static Game twoWithoutStrategies() {
@@ -305,23 +305,24 @@ public class Game {
 
     int i = 0;
     int index = 0;
-    for (; !this.getGameEnd(); i++) {
+    for (; !this.getGameEnd() && this.zuege < 100; i++) {
 
       // Index wechselt immer : 0 ^ 1 = 1 und 1 ^ 1= 0
-      index = index ^ 1;
+
 
       AbstractPlayer top = players.get(index);
-      System.out.println((top.getHandKarten()));
+      // System.out.println((top.getHandKarten()));
 
       AblagePlay nextPlay = top.play(this.nachZiehStapel.size());
-      System.out.println(nextPlay);
+      // System.out.println(nextPlay);
       this.makePlay(nextPlay, top);
 
       Stapel chooseStapel = top.chooseStapel();
-      System.out.println(chooseStapel);
+      // System.out.println(chooseStapel);
       this.addCardtoPlayer(chooseStapel, top);
 
-      System.out.println(this);
+      // System.out.println(this);
+      index = index ^ 1;
 
     }
 
@@ -381,7 +382,7 @@ public class Game {
     }
 
 
-
+    this.players.get(player.getIndex() ^ 1).removeCardFromModel(cardToPlay);
     player.setLastPlay(play.getStapel());
   }
 
@@ -414,6 +415,7 @@ public class Game {
 
       abs = this.returnCard(stapel);
 
+
     } else {
       abs = this.returnCardFromNachziehStapel();
     }
@@ -422,6 +424,10 @@ public class Game {
 
       AbstractCard card = abs.get();
       abstractPlayer.getHandKarten().add(card);
+
+      if (stapel.isMiddle()) {
+        this.players.get(abstractPlayer.getIndex() ^ 1).addCardToModel(card);
+      }
 
 
     } else {
@@ -434,6 +440,10 @@ public class Game {
     }
 
     this.turn = 1 ^ this.turn;
+    this.zuege++;
+
+
+
     abstractPlayer.setLastPlay(null);
 
   }
@@ -640,7 +650,15 @@ public class Game {
     /*
      * Gegnermodell ausfüllen
      */
-    result.players.get(ai.getIndex() ^ 1).getHandKarten().addAll(ai.getModel());
+    // result.players.get(ai.getIndex() ^ 1).getHandKarten().addAll(ai.getModel());
+    // // System.out.println();
+    // for (AbstractCard abs : ai.getModel()) {
+    //
+    // result.nachZiehStapel.remove(abs);
+    // }
+    //
+    // System.out.println(ai.getModel());
+    // System.out.println();
 
     List<AbstractCard> enemyhand = result.players.get(ai.getIndex() ^ 1).getHandKarten();
 
@@ -653,6 +671,8 @@ public class Game {
 
     }
 
+    result.turn = ai.getIndex();
+    result.zuege = result.nachZiehStapel.size();
 
     return result;
   }
@@ -747,6 +767,14 @@ public class Game {
     }
   }
 
+  public int getZuege() {
+    return this.zuege;
+
+  }
+
+  public void replacePlayersWithSimple() {
+    this.players.forEach(pl -> pl.setStrategy(new SimpleStrategy(pl)));
+  }
 
 
 }

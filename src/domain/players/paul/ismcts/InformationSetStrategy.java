@@ -38,9 +38,16 @@ public class InformationSetStrategy implements PlayStrategy {
 
   @Override
   public AblagePlay choosePlay(int remainingCards) {
+
+
+
     Game copyGame = Utils.determinizeGame(ai);
     copyGame.replacePlayersWithRandomStrategy();
-    selectedPlay = Ismcts.ISMCTS(copyGame, copyGame.getTurn(), 50_000);
+
+    // System.out.println(ai.getModel());
+
+    selectedPlay = Ismcts.ISMCTS(copyGame, copyGame.getTurn(), 10_000);
+    System.out.println(copyGame.getTurn());
     return selectedPlay.getOption();
   }
 
