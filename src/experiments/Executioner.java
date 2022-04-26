@@ -2,7 +2,7 @@ package experiments;
 
 import java.time.LocalDateTime;
 import domain.main.Game;
-import domain.players.fabian.FabianISMCTSStrategy;
+import domain.players.jann.JannStrategy;
 import domain.players.paul.ismcts.InformationSetStrategy;
 
 public class Executioner {
@@ -35,7 +35,7 @@ public class Executioner {
     for (; LocalDateTime.now().isBefore(in_six_hours); i++) {
       game = Game.twoWithoutStrategies();
       game.getPlayers().get(0).setStrategy(new InformationSetStrategy(game.getPlayers().get(0)));
-      game.getPlayers().get(1).setStrategy(new FabianISMCTSStrategy(game.getPlayers().get(1)));
+      game.getPlayers().get(1).setStrategy(new JannStrategy(game.getPlayers().get(1)));
       // for (AiPlayer p : game.getPlayers()) {
       // p.setStrategy(new SecondRandomStrategy(p));
       // }
@@ -65,7 +65,7 @@ public class Executioner {
     info.printInfo();
 
 
-    System.out.println("ich vs fabian, iterationen10, simulations-stategie: simple, C=0.7");
+    System.out.println("ich vs jann, iterationen10, simulations-stategie: simple, C=0.7");
 
 
   }

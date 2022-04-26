@@ -1,9 +1,13 @@
 package domain.players;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.stream.Collectors;
 import domain.cards.AbstractCard;
 import domain.cards.Color;
 import domain.cards.Stapel;
@@ -106,11 +110,11 @@ public abstract class AbstractPlayer {
    * 
    * @return
    */
-  public List<WholePlay> getAllActions() {
+  public List<WholePlay> getAllActions(int remainingCards) {
 
-    // if (this.getRemainingCards() >= 20) {
-    // return this.alternativeActionsForExpansion();
-    // }
+    if (remainingCards >= 5) {
+      return this.onlyGoodActions();
+    }
 
     // new Stapel[] {Stapel.NACHZIEHSTAPEL}
     LinkedList<WholePlay> result = new LinkedList<WholePlay>();
@@ -213,6 +217,107 @@ public abstract class AbstractPlayer {
 
   public Stapel getLastAblage() {
     return this.lastAblage;
+  }
+
+  private List<WholePlay> onlyGoodActions() {
+
+
+    List<WholePlay> result = new ArrayList<WholePlay>();
+
+    List<AblagePlay> ablagen = new ArrayList<AblagePlay>();
+
+    /*
+     * gute Mittelzüge
+     */
+    this.handKarten.stream().filter(card -> {
+
+      boolean keep = true;
+
+
+      if (!this.expeditionen.get(card.getColor()).isEmpty()) {
+        if (card.getValue() >= this.expeditionen.get(card.getColor()).peek().getValue()) {
+          keep = false;
+        }
+      } else if (!this.enemyEx.get(card.getColor()).isEmpty()) {
+        if (card.getValue() >= this.enemyEx.get(card.getColor()).peek().getValue()) {
+          keep = false;
+        }
+      }
+      return keep;
+
+    }).forEach(card -> ablagen.add(new AblagePlay(Stapel.toMiddle(card.getColor()), card)));
+
+
+    /*
+     * jeweils nur den besten Expeditionenzug und joker expeditionzug
+     */
+
+    for (Entry<Color, Stack<AbstractCard>> entry : this.expeditionen.entrySet()) {
+      List<AbstractCard> ls;
+      if (entry.getValue().isEmpty()) {
+        if (!(ls = this.handKarten.stream()
+            .filter(
+                card -> card.getColor() == entry.getKey() && card.isNumber() && card.getValue() < 9)
+            .collect(Collectors.toList())).isEmpty()) {
+          ablagen.add(new AblagePlay(Stapel.toExpedition(entry.getKey()), Collections.min(ls)));
+        }
+        if (!(ls = this.handKarten.stream()
+            .filter(card -> card.getColor() == entry.getKey() && !card.isNumber())
+            .collect(Collectors.toList())).isEmpty()) {
+          ablagen.add(new AblagePlay(Stapel.toExpedition(entry.getKey()), ls.get(0)));
+        }
+      } else if (!entry.getValue().isEmpty()) {
+        if (!(ls = this.handKarten.stream()
+            .filter(card -> card.getColor() == entry.getKey()
+                && entry.getValue().peek().getValue() <= card.getValue())
+            .collect(Collectors.toList())).isEmpty()) {
+          ablagen.add(new AblagePlay(Stapel.toExpedition(entry.getKey()), Collections.min(ls)));
+
+        }
+      }
+    }
+
+
+    /*
+     * rausfinden welche Karten ich von den Stapel ziehen soll
+     */
+    List<Stapel> ziehpossibilites = new ArrayList<Stapel>();
+    ziehpossibilites.add(Stapel.NACHZIEHSTAPEL);
+    for (Color col : Color.values()) {
+
+      if (!this.ablagestapels.get(col).isEmpty()) {
+        AbstractCard val = this.ablagestapels.get(col).peek();
+        if (!this.expeditionen.get(col).isEmpty()) {
+          if (val.getValue() >= this.expeditionen.get(col).peek().getValue()) {
+            ziehpossibilites.add(Stapel.toMiddle(col));
+          }
+        } else if (this.expeditionen.get(col).isEmpty()) {
+          ziehpossibilites.add(Stapel.toMiddle(col));
+        }
+
+      }
+
+    }
+
+    for (Stapel zieh : ziehpossibilites) {
+      for (AblagePlay opt : ablagen) {
+        if (zieh != opt.getStapel()) {
+          result.add(new WholePlay(opt, zieh));
+        }
+      }
+    }
+
+    if (result.isEmpty()) {
+
+      result.add(new WholePlay(
+          new AblagePlay(Stapel.toMiddle(handKarten.get(0).getColor()), handKarten.get(0)),
+          Stapel.NACHZIEHSTAPEL));
+      System.out.println("kein zug möglich gewesen");
+    }
+
+
+    return result;
+
   }
 
 

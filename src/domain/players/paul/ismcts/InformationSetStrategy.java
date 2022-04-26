@@ -47,7 +47,7 @@ public class InformationSetStrategy implements PlayStrategy {
     // System.out.println(ai.getModel());
 
     selectedPlay = Ismcts.ISMCTS(copyGame, copyGame.getTurn(), 10_000);
-    System.out.println(copyGame.getTurn());
+    // System.out.println(copyGame.getTurn());
     return selectedPlay.getOption();
   }
 

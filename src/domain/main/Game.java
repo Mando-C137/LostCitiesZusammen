@@ -672,7 +672,7 @@ public class Game {
     }
 
     result.turn = ai.getIndex();
-    result.zuege = result.nachZiehStapel.size();
+    result.zuege = 44 - result.nachZiehStapel.size();
 
     return result;
   }

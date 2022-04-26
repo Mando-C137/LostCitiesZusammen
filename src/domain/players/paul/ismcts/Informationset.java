@@ -73,7 +73,7 @@ public class Informationset {
    * @return Die Kinderknoten, die eine passende Aktion für die Determisierung haben.
    */
   public List<Informationset> getCompatibleChildren(Game g) {
-    List<WholePlay> ls = g.getPlayers().get(g.getTurn()).getAllActions();
+    List<WholePlay> ls = g.getPlayers().get(g.getTurn()).getAllActions(g.getRemainingCards());
 
     List<Informationset> theChildrenWhoAreCompatible = children.stream()
         .filter(child -> ls.contains(child.incomingAction)).collect(Collectors.toList());
@@ -94,7 +94,8 @@ public class Informationset {
    */
   public List<WholePlay> u_v_d(Game det) {
 
-    List<WholePlay> actionsFromD = det.getPlayers().get(det.getTurn()).getAllActions();
+    List<WholePlay> actionsFromD =
+        det.getPlayers().get(det.getTurn()).getAllActions(det.getRemainingCards());
 
     List<WholePlay> incomingPlays =
         this.children.stream().map(child -> child.incomingAction).collect(Collectors.toList());
